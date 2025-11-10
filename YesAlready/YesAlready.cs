@@ -44,7 +44,7 @@ public class YesAlready : IDalamudPlugin
         EzCmd.Add(Command, OnCommand, "Opens the plugin window.", int.MinValue);
         Aliases.Each(a => EzCmd.Add(a, OnCommand, $"{Command} alias"));
 
-        _ = new EzDtr(() => new SeString(new TextPayload($"{Name}: {(C.Enabled ? (Service.BlockListHandler.Locked ? "Paused" : "On") : "Off")}")), () => C.Enabled ^= true);
+        _ = new EzDtr(() => new SeString(new TextPayload($"{Name}: {(C.Enabled ? (Service.BlockListHandler.Locked ? "Paused" : "On") : "Off")}")), () => { C.Enabled ^= true; C.Save(); });
 
         LoadTerritories();
         ToggleFeatures(true);
