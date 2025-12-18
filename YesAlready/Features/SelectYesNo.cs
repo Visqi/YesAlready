@@ -26,7 +26,7 @@ internal class SelectYesno : TextMatchingFeature
             return new TextEntryNode { IsYes = true };
         }
 
-        if (C.GimmickYesNo && Svc.Data.GetExcelSheet<GimmickYesNo>().Where(x => !x.Unknown0.IsEmpty).Select(x => x.Unknown0).ToList().Any(g => g.Equals(text)))
+        if (C.GimmickYesNo && Svc.Data.GetExcelSheet<GimmickYesNo>().Where(x => !x.Message.IsEmpty).Select(x => x.Message).ToList().Any(g => g.Equals(text)))
         {
             Log($"Entry is a gimmick");
             return new TextEntryNode { IsYes = true };
