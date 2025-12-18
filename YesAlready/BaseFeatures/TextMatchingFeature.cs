@@ -1,6 +1,5 @@
 using Dalamud.Game.ClientState.Conditions;
 using ECommons.GameHelpers;
-using Lumina.Excel.Sheets;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -135,7 +134,7 @@ public abstract class TextMatchingFeature : AddonFeature
     {
         if (node is IZoneRestrictedNode { ZoneRestricted: true } zoneNode)
         {
-            if (GenericHelpers.GetRow<TerritoryType>(Player.Territory) is { PlaceName.ValueNullable.Name: var name })
+            if (Player.Territory is { Value.PlaceName.Value.Name: var name })
             {
                 if (!EntryMatchesText(zoneNode.ZoneText, name.ToString(), zoneNode.ZoneIsRegex))
                 {

@@ -1,15 +1,15 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.GameHelpers;
 using ECommons.SimpleGui;
-using Dalamud.Bindings.ImGui;
-using Lumina.Excel.Sheets;
 using System.Numerics;
 using System.Text;
 using YesAlready.Interface;
 
 namespace YesAlready.UI.Tabs;
+
 public class YesNo
 {
     private static TextFolderNode RootFolder => C.RootFolder;
@@ -35,7 +35,7 @@ public class YesNo
             var createFolder = io.KeyShift;
             var selectNo = io.KeyAlt;
 
-            Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? GenericHelpers.GetRow<TerritoryType>(Player.Territory)?.Name.ExtractText() : null, !selectNo);
+            Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? Player.Territory.Value.Name.ToString() : null, !selectNo);
             C.Save();
         }
 

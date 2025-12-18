@@ -2,7 +2,6 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Plugin;
 using ECommons.EzDTR;
-using ECommons.EzHookManager;
 using ECommons.GameHelpers;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
@@ -183,7 +182,7 @@ public class YesAlready : IDalamudPlugin
             return;
         }
 
-        Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? GenericHelpers.GetRow<TerritoryType>(Player.Territory)?.Name.ExtractText() : null, !selectNo);
+        Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? Player.Territory.Value.Name.ToString() : null, !selectNo);
         C.Save();
 
         Svc.Chat.PrintPluginMessage("Added a new text entry.");

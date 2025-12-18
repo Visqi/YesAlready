@@ -1,7 +1,6 @@
 using Dalamud.Hooking;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System;
-using System.Linq;
 
 namespace YesAlready.BaseFeatures;
 

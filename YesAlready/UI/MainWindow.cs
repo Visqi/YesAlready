@@ -122,7 +122,7 @@ internal class MainWindow : Window
             }
         }
 
-        using (var combo = ImRaii.Combo("###ChatChannelSelect", $"{Enum.GetName(typeof(XivChatType), C.MessageChannel)}"))
+        using (var combo = ImRaii.Combo("###ChatChannelSelect", $"{Enum.GetName(C.MessageChannel)}"))
         {
             if (combo)
             {
@@ -152,7 +152,7 @@ internal class MainWindow : Window
 
         if (root.Children.Count == 0)
         {
-            root.Children.Add((ITextNode)createNewNode());
+            root.Children.Add((ITextNode)createNewNode()!);
             C.Save();
         }
 
@@ -329,7 +329,7 @@ internal class MainWindow : Window
                         var createFolder = io.KeyShift;
                         var selectNo = io.KeyAlt;
 
-                        Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? GenericHelpers.GetRow<Lumina.Excel.Sheets.TerritoryType>(Player.Territory)?.Name.ExtractText() : null, !selectNo);
+                        Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? Player.Territory.Value.Name.ToString() : null, !selectNo);
                         C.Save();
                     }
                     else if (root == OkRootFolder || root == NumericsRootFolder)
