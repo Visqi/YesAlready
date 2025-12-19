@@ -18,9 +18,7 @@ internal class SalvageResult : AddonFeature
 
             case "SalvageAutoDialog":
                 if (GenericHelpers.TryGetAddonMaster<AddonMaster.SalvageAutoDialog>(out var am) && am.DesynthesisInactive)
-                {
                     am.EndDesynthesis();
-                }
                 break;
         }
     }

@@ -1,3 +1,5 @@
+using FFXIVClientStructs.FFXIV.Client.UI;
+
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
@@ -19,12 +21,25 @@ internal class SalvageDialog : AddonFeature
                 //    break;
                 case AddonEvent.PostSetup:
                     if (C.DesynthDialogEnabled)
-                    {
-                        am.Checkbox();
                         am.Desynthesize();
-                    }
                     break;
             }
+        }
+    }
+
+    public partial class AddonMaster // TODO: wait for EC to merge
+    {
+        public unsafe class SalvageDialog : AddonMasterBase<AddonSalvageDialog>
+        {
+            public SalvageDialog(nint addon) : base(addon) { }
+            public SalvageDialog(void* addon) : base(addon) { }
+
+            public AtkComponentButton* DesynthesizeButton => Addon->GetComponentButtonById(25);
+            public AtkComponentButton* CancelButton => Addon->GetComponentButtonById(26);
+
+            public override string AddonDescription { get; } = "Desynthesis window";
+
+            public void Desynthesize() => ClickButtonIfEnabled(DesynthesizeButton);
         }
     }
 }
