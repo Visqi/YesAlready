@@ -143,13 +143,13 @@ public static class Bothers
             }
             ImGuiX.IndentedTextColored("Remove the materia melding confirmation menu.");
 
-            var materialize = C.MaterializeDialogEnabled;
-            if (ImGui.Checkbox("MaterializeDialog", ref materialize))
-            {
-                C.MaterializeDialogEnabled = materialize;
-                C.Save();
-            }
-            ImGuiX.IndentedTextColored("Remove the create new (extract) materia confirmation.");
+            //var materialize = C.MaterializeDialogEnabled;
+            //if (ImGui.Checkbox("MaterializeDialog", ref materialize))
+            //{
+            //    C.MaterializeDialogEnabled = materialize;
+            //    C.Save();
+            //}
+            //ImGuiX.IndentedTextColored("Remove the create new (extract) materia confirmation.");
 
             var materiaRetrieve = C.MateriaRetrieveDialogEnabled;
             if (ImGui.Checkbox("MateriaRetrieveDialog", ref materiaRetrieve))

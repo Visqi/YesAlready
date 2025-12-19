@@ -26,7 +26,7 @@ public partial class Configuration() : IPluginConfiguration
     public TextFolderNode CustomRootFolder { get; private set; } = new TextFolderNode { Name = "/" };
     public bool DesynthDialogEnabled { get; set; } = false;
     public bool DesynthBulkDialogEnabled { get; set; } = false;
-    public bool MaterializeDialogEnabled { get; set; } = false;
+    //public bool MaterializeDialogEnabled { get; set; } = false;
     public bool MaterialAttachDialogEnabled { get; set; } = false;
     public bool OnlyMeldWhenGuaranteed { get; set; } = true;
     public bool MateriaRetrieveDialogEnabled { get; set; } = false;
