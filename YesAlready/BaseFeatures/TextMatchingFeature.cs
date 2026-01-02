@@ -134,7 +134,7 @@ public abstract class TextMatchingFeature : AddonFeature
     {
         if (node is IZoneRestrictedNode { ZoneRestricted: true } zoneNode)
         {
-            if (Player.Territory is { Value.PlaceName.Value.Name: var name })
+            if (Player.Territory is { ValueNullable.PlaceName.ValueNullable.Name: { IsEmpty: false } name })
             {
                 if (!EntryMatchesText(zoneNode.ZoneText, name.ToString(), zoneNode.ZoneIsRegex))
                 {
