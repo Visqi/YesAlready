@@ -441,6 +441,22 @@ public static class Bothers
             }
             ImGuiX.IndentedTextColored("Automatically cast glamours when using Glamour Prisms.");
 
+            var mppsc = C.MiragePrismPrismSetConvert;
+            if (ImGui.Checkbox("MiragePrismPrismSetConvert", ref mppsc))
+            {
+                C.MiragePrismPrismSetConvert = mppsc;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Automatically store glamours. Only activates if you have all pieces.");
+
+            var mppscc = C.MiragePrismPrismSetConvertC;
+            if (ImGui.Checkbox("MiragePrismPrismSetConvertC", ref mppscc))
+            {
+                C.MiragePrismPrismSetConvertC = mppscc;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Confirm glamour outfit conversion.");
+
             var bpu = C.BannerPreviewUpdate;
             if (ImGui.Checkbox("BannerPreviewUpdate", ref bpu))
             {
