@@ -1,12 +1,22 @@
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
+using Lumina.Text.ReadOnly;
+using System.Linq;
 using System.Text;
 
 namespace YesAlready.Utils;
 
-public static class ChatExtensions
+public static class Extensions
 {
+    public static bool EqualsIgnoreSpecial(this ReadOnlySeString ross, string str)
+    {
+        // french has nbsps we need to ignore
+        var x = new string([.. ross.ExtractText().Where(c => !char.IsWhiteSpace(c))]);
+        var y = new string([.. str.Where(c => !char.IsWhiteSpace(c))]);
+        return x.Equals(y, System.StringComparison.InvariantCultureIgnoreCase);
+    }
+
     public static void PrintPluginMessage(this IChatGui chat, string msg)
         => chat.Print(new XivChatEntry
         {
