@@ -18,6 +18,11 @@ internal class SelectIconString : TextMatchingFeature
         if (!GenericHelpers.TryGetAddonMaster<AddonMaster.SelectIconString>(out var addon)) return null;
         string[] entries = [.. addon.Entries.Select(x => x.Text)];
 
+        if (C.SelectStringAutoAcceptQuests)
+            foreach (var e in entries)
+                if (Service.QuestNames.Any(qn => qn.Equals(e)))
+                    return GetMatchingIndex(entries, e, false);
+
         var nodes = C.GetAllNodes().OfType<ListEntryNode>();
         foreach (var node in nodes)
         {

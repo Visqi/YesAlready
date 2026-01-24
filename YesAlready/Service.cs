@@ -1,4 +1,6 @@
 ﻿using ECommons.Automation.NeoTaskManager;
+using Lumina.Excel.Sheets;
+using System.Linq;
 using YesAlready.IPC;
 
 namespace YesAlready;
@@ -8,4 +10,6 @@ public static class Service
     public static BlockListHandler BlockListHandler { get; private set; } = null!;
     public static YesAlreadyIPC IPC { get; private set; } = null!;
     public static Watcher Watcher { get; private set; } = null!;
+
+    public static string[] QuestNames = [.. Svc.Data.GetExcelSheet<Quest>()!.Where(q => !q.Name.IsEmpty).Select(q => q.Name.GetText())];
 }

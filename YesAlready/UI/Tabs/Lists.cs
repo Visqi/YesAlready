@@ -1,5 +1,7 @@
-using Dalamud.Interface;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
 using System.Numerics;
 using System.Text;
 
@@ -12,7 +14,7 @@ public static class Lists
     {
         var style = ImGui.GetStyle();
         var newStyle = new Vector2(style.ItemSpacing.X / 2, style.ItemSpacing.Y);
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, newStyle);
+        using var _ = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, newStyle);
 
         if (ImGuiX.IconButton(FontAwesomeIcon.Plus, "Add new entry"))
         {
@@ -57,7 +59,23 @@ public static class Lists
         ImGui.SameLine();
         ImGuiX.IconButton(FontAwesomeIcon.QuestionCircle, sb.ToString());
 
-        ImGui.PopStyleVar(); // ItemSpacing
+        ImGui.SameLine();
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.EllipsisH))
+            ImGui.OpenPopup("SelectString additional options");
+        DrawSelectStringBothers();
+    }
+
+    private static void DrawSelectStringBothers()
+    {
+        using var popup = ImRaii.Popup("SelectString additional options");
+        if (!popup) return;
+        var autoSelectQuests = C.SelectStringAutoAcceptQuests;
+        if (ImGui.Checkbox("Auto Select Quests", ref autoSelectQuests))
+        {
+            C.SelectStringAutoAcceptQuests = autoSelectQuests;
+            C.Save();
+        }
+        ImGuiX.IndentedTextColored("Automatically select the first string that's a quest name", wrapped: false);
     }
 
     public static void DisplayListEntryNode(ListEntryNode node)

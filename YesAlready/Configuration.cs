@@ -37,6 +37,7 @@ public partial class Configuration() : IPluginConfiguration
     public bool GrandCompanySupplyReward { get; set; } = false;
     public bool ShopCardDialog { get; set; } = false;
     public bool ShopExchangeItemDialogEnabled { get; set; } = false;
+    public bool JournalAcceptAccept { get; set; } = false;
     public bool JournalResultCompleteEnabled { get; set; } = false;
     public bool ContentsFinderConfirmEnabled { get; set; } = false;
     public bool ContentsFinderOneTimeConfirmEnabled { get; set; } = false;
@@ -75,6 +76,7 @@ public partial class Configuration() : IPluginConfiguration
     public Features.DifficultySelectYesNo.Difficulty DifficultySelectYesNo { get; set; } = Features.DifficultySelectYesNo.Difficulty.VeryEasy;
     public bool MiragePrismPrismSetConvert { get; set; } = false;
     public bool MiragePrismPrismSetConvertC { get; set; } = false;
+    public bool SelectStringAutoAcceptQuests { get; set; } = false;
 
     public List<CustomBother> CustomCallbacks { get; set; } = [];
 

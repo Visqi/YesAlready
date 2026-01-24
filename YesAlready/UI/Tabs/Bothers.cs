@@ -401,6 +401,14 @@ public static class Bothers
             }
             ImGuiX.IndentedTextColored("Skip the confirmation when submitting Grand Company expert delivery items.");
 
+            var journalAcceptAccept = C.JournalAcceptAccept;
+            if (ImGui.Checkbox("JournalAcceptAccept", ref journalAcceptAccept))
+            {
+                C.JournalAcceptAccept = journalAcceptAccept;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Automatically accept quests.");
+
             var journalResultComplete = C.JournalResultCompleteEnabled;
             if (ImGui.Checkbox("JournalResultComplete", ref journalResultComplete))
             {
