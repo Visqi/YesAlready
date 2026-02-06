@@ -21,6 +21,9 @@ internal class InputNumeric : TextMatchingFeature
             if (!node.Enabled || string.IsNullOrEmpty(node.Text))
                 continue;
 
+            if (!CheckRestrictions(node))
+                continue;
+
             if (EntryMatchesText(node.Text, text, node.IsTextRegex))
                 return node;
         }

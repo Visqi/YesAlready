@@ -1,18 +1,21 @@
-using Dalamud.Interface;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
+using ECommons.GameHelpers;
+using ECommons.SimpleGui;
 using System.Numerics;
 using System.Text;
+using YesAlready.Interface;
 
 namespace YesAlready.UI.Tabs;
+
 public static class Numerics
 {
     private static TextFolderNode NumericsRootFolder => C.NumericsRootFolder;
 
     public static void DrawButtons()
     {
-        var style = ImGui.GetStyle();
-        var newStyle = new Vector2(style.ItemSpacing.X / 2, style.ItemSpacing.Y);
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, newStyle);
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.GetStyle().ItemSpacing.X / 2, ImGui.GetStyle().ItemSpacing.Y));
 
         if (ImGuiX.IconButton(FontAwesomeIcon.Plus, "Add new entry"))
         {
@@ -26,8 +29,9 @@ public static class Numerics
         {
             var io = ImGui.GetIO();
             var createFolder = io.KeyShift;
+            var zoneRestricted = io.KeyCtrl;
 
-            Configuration.CreateNode<NumericsEntryNode>(NumericsRootFolder, createFolder);
+            Configuration.CreateNode<NumericsEntryNode>(NumericsRootFolder, createFolder, zoneRestricted ? Player.Territory.Value.Name.ToString() : null);
             C.Save();
         }
 
@@ -54,6 +58,7 @@ public static class Numerics
         sb.AppendLine();
         sb.AppendLine("\"Add last seen as new entry\" button modifiers:");
         sb.AppendLine("   Shift-Click to add to a new or first existing folder.");
+        sb.AppendLine("   Ctrl-Click to create an entry restricted to the current zone.");
         sb.AppendLine();
         sb.AppendLine("Currently supported numeric addons:");
         sb.AppendLine("  - InputNumeric");
@@ -61,13 +66,11 @@ public static class Numerics
         ImGui.SameLine();
         ImGuiX.IconButton(FontAwesomeIcon.QuestionCircle, sb.ToString());
         if (ImGui.IsItemHovered()) ImGui.SetTooltip(sb.ToString());
-
-        ImGui.PopStyleVar(); // ItemSpacing
     }
 
     public static void DrawPopup(NumericsEntryNode node, Vector2 spacing)
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, spacing);
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, spacing);
 
         var enabled = node.Enabled;
         if (ImGui.Checkbox("Enabled", ref enabled))
@@ -95,8 +98,6 @@ public static class Numerics
             C.Save();
         }
 
-        ImGui.PopStyleVar(); // ItemSpacing
-
         var percent = node.IsPercent;
         if (ImGui.Checkbox("Percentage", ref percent))
         {
@@ -108,10 +109,8 @@ public static class Numerics
             var percentage = node.Percentage;
             if (ImGui.SliderInt($"Percent of Max##{node.GetHashCode()}", ref percentage, 0, 100, "%d%%", ImGuiSliderFlags.AlwaysClamp))
             {
-                if (percentage < 0) node.Percentage = 0;
-                else node.Percentage = percentage;
-                if (percentage > 100) node.Percentage = 100;
-                else node.Percentage = percentage;
+                node.Percentage = percentage < 0 ? 0 : percentage;
+                node.Percentage = percentage > 100 ? 100 : percentage;
                 C.Save();
             }
         }
@@ -120,10 +119,46 @@ public static class Numerics
             var quantity = node.Quantity;
             if (ImGui.InputInt($"Default Quantity##{node.GetHashCode()}", ref quantity))
             {
-                if (quantity < 1) node.Quantity = 1;
-                else node.Quantity = quantity;
+                node.Quantity = quantity < 1 ? 1 : quantity;
                 C.Save();
             }
+        }
+
+        var zoneRestricted = node.ZoneRestricted;
+        if (ImGui.Checkbox("Zone Restricted", ref zoneRestricted))
+        {
+            node.ZoneRestricted = zoneRestricted;
+            C.Save();
+        }
+
+        var searchWidth = ImGuiX.GetIconButtonWidth(FontAwesomeIcon.Search);
+        var searchPlusWidth = ImGuiX.GetIconButtonWidth(FontAwesomeIcon.SearchPlus);
+
+        ImGui.SameLine(ImGui.GetContentRegionMax().X - searchWidth);
+        if (ImGuiX.IconButton(FontAwesomeIcon.Search, "Zone List"))
+            EzConfigGui.GetWindow<ZoneListWindow>()?.Toggle();
+
+        ImGui.SameLine(ImGui.GetContentRegionMax().X - searchWidth - searchPlusWidth - spacing.X);
+        if (ImGuiX.IconButton(FontAwesomeIcon.SearchPlus, "Fill with current zone"))
+        {
+            var currentID = Svc.ClientState.TerritoryType;
+            if (P.TerritoryNames.TryGetValue(currentID, out var zoneName))
+            {
+                node.ZoneText = zoneName;
+                C.Save();
+            }
+            else
+            {
+                node.ZoneText = "Could not find name";
+                C.Save();
+            }
+        }
+
+        var zoneText = node.ZoneText;
+        if (ImGui.InputText($"##{node.Name}-zoneText", ref zoneText, 10_000, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+        {
+            node.ZoneText = zoneText;
+            C.Save();
         }
 
         //var targetRestricted = node.TargetRestricted;
@@ -154,10 +189,67 @@ public static class Numerics
         //}
 
         //var targetText = node.TargetText;
-        //if (ImGui.InputText($"##{node.Name}-targetText", ref targetText, 10_000, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
+        //if (ImGui.InputText($"##{node.Name}-targetText", ref targetText, 10_000, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputFlags.EnterReturnsTrue))
         //{
         //    node.TargetText = targetText;
         //    C.Save();
         //}
+    }
+
+    public static void DisplayEntryNode(NumericsEntryNode node)
+    {
+        var validRegex = node.IsTextRegex && node.TextRegex != null || !node.IsTextRegex;
+        var validZone = !node.ZoneRestricted || node.ZoneIsRegex && node.ZoneRegex != null || !node.ZoneIsRegex;
+
+        if (!node.Enabled && (!validRegex || !validZone))
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(.5f, 0, 0, 1));
+        else if (!node.Enabled)
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(.5f, .5f, .5f, 1));
+        else if (!validRegex || !validZone)
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+
+        ImGui.TreeNodeEx($"{node.Name}##{node.Name}-tree", ImGuiTreeNodeFlags.Leaf);
+        ImGui.TreePop();
+
+        if (!node.Enabled || !validRegex || !validZone)
+            ImGui.PopStyleColor();
+
+        if (!validRegex && !validZone)
+            ImGuiX.TextTooltip("Invalid Text and Zone Regex");
+        else if (!validRegex)
+            ImGuiX.TextTooltip("Invalid Text Regex");
+        else if (!validZone)
+            ImGuiX.TextTooltip("Invalid Zone Regex");
+
+        if (ImGui.IsItemHovered())
+        {
+            if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+            {
+                node.Enabled = !node.Enabled;
+                C.Save();
+                return;
+            }
+            else if (ImGui.IsMouseClicked(ImGuiMouseButton.Right))
+            {
+                var io = ImGui.GetIO();
+                if (io.KeyCtrl && io.KeyShift)
+                {
+                    if (C.TryFindParent(node, out var parent))
+                    {
+                        parent!.Children.Remove(node);
+                        C.Save();
+                    }
+
+                    return;
+                }
+                else
+                {
+                    ImGui.OpenPopup($"{node.GetHashCode()}-popup");
+                }
+            }
+        }
+
+        MainWindow.TextNodePopup(node);
+        MainWindow.TextNodeDragDrop(node);
     }
 }

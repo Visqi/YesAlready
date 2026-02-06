@@ -175,7 +175,7 @@ internal class MainWindow : Window
         else if (node is TalkEntryNode talkNode)
             DisplayEntryNode<TalkEntryNode>(talkNode);
         else if (node is NumericsEntryNode numNode)
-            DisplayEntryNode<NumericsEntryNode>(numNode);
+            Numerics.DisplayEntryNode(numNode);
         else if (node is CustomEntryNode customNode)
             DisplayEntryNode<CustomEntryNode>(customNode);
     }

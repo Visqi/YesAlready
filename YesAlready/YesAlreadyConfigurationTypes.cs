@@ -205,14 +205,31 @@ public class TalkEntryNode : BaseTextNode, IValidatable
     public string? ValidationError => TargetIsRegex && TargetRegex == null ? "Invalid regex pattern" : null;
 }
 
-public class NumericsEntryNode : BaseTextNode, IValidatable
+public class NumericsEntryNode : BaseTextNode, IZoneRestrictedNode, IValidatable
 {
     public bool IsPercent { get; set; } = true;
     public int Percentage { get; set; } = 100;
     public int Quantity { get; set; } = 0;
+    public bool ZoneRestricted { get; set; } = false;
+    public string ZoneText { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public override string Name => IsPercent ? $"({Percentage}%) {Text}" : $"({Quantity}f) {Text}";
+    public bool ZoneIsRegex => ZoneText.StartsWith('/') && ZoneText.EndsWith('/');
+
+    [JsonIgnore]
+    public Regex? ZoneRegex => RegexExtensions.TryCreateRegex(ZoneText.Trim('/'), RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    [JsonIgnore]
+    public override string Name
+    {
+        get
+        {
+            var baseName = IsPercent ? $"({Percentage}%) {Text}" : $"({Quantity}f) {Text}";
+            return !string.IsNullOrEmpty(ZoneText)
+                ? $"({ZoneText}) {baseName}"
+                : baseName;
+        }
+    }
 
     [JsonIgnore]
     public bool IsValid => !IsTextRegex || TextRegex != null;
