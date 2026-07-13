@@ -62,7 +62,7 @@ public abstract class TextMatchingFeature : AddonFeature
                 return false;
             }
         }
-        else if (text.Contains(pattern))
+        else if (text.ContainsIgnoreWhitespace(pattern))
         {
             LogVerbose($"Matched on text {pattern} ({text})");
             return true;
@@ -93,7 +93,7 @@ public abstract class TextMatchingFeature : AddonFeature
         }
         else
         {
-            var index = text.IndexOf(pattern, StringComparison.OrdinalIgnoreCase);
+            var index = text.WithoutWhitespace().IndexOf(pattern.WithoutWhitespace(), StringComparison.OrdinalIgnoreCase);
             if (index != -1)
             {
                 LogVerbose($"Matched on text {pattern} ({text})");

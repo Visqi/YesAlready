@@ -2,6 +2,7 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
 using Lumina.Text.ReadOnly;
+using System;
 using System.Linq;
 using System.Text;
 
@@ -9,12 +10,16 @@ namespace YesAlready.Utils;
 
 public static class Extensions
 {
+    public static string WithoutWhitespace(this string str)
+        => new([.. str.Where(c => !char.IsWhiteSpace(c))]);
+
+    public static bool ContainsIgnoreWhitespace(this string text, string pattern, StringComparison comparison = StringComparison.Ordinal)
+        => text.WithoutWhitespace().Contains(pattern.WithoutWhitespace(), comparison);
+
     public static bool EqualsIgnoreSpecial(this ReadOnlySeString ross, string str)
     {
         // french has nbsps we need to ignore
-        var x = new string([.. ross.ExtractText().Where(c => !char.IsWhiteSpace(c))]);
-        var y = new string([.. str.Where(c => !char.IsWhiteSpace(c))]);
-        return x.Equals(y, System.StringComparison.InvariantCultureIgnoreCase);
+        return ross.ExtractText().WithoutWhitespace().Equals(str.WithoutWhitespace(), StringComparison.InvariantCultureIgnoreCase);
     }
 
     public static void PrintPluginMessage(this IChatGui chat, string msg)

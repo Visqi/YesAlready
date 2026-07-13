@@ -114,10 +114,10 @@ internal abstract class OnSetupSelectListFeature : BaseFeature, IDisposable
     }
 
     private static bool EntryMatchesText(ListEntryNode node, string text)
-        => node.IsTextRegex && (node.TextRegex?.IsMatch(text) ?? false) || !node.IsTextRegex && text.Contains(node.Text);
+        => node.IsTextRegex && (node.TextRegex?.IsMatch(text) ?? false) || !node.IsTextRegex && text.ContainsIgnoreWhitespace(node.Text);
 
     private static bool EntryMatchesTargetName(ListEntryNode node, string targetName)
-        => node.TargetIsRegex && (node.TargetRegex?.IsMatch(targetName) ?? false) || !node.TargetIsRegex && targetName.Contains(node.TargetText);
+        => node.TargetIsRegex && (node.TargetRegex?.IsMatch(targetName) ?? false) || !node.TargetIsRegex && targetName.ContainsIgnoreWhitespace(node.TargetText);
 
     #endregion
 }
