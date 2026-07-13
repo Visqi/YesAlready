@@ -114,6 +114,14 @@ public class YesAlready : IDalamudPlugin
                 C.Enabled ^= true;
                 C.Save();
                 break;
+            case "on":
+                C.Enabled = true;
+                C.Save();
+                break;
+            case "off":
+                C.Enabled = false;
+                C.Save();
+                break;
             case "last":
                 CommandAddNode(false, false, false);
                 break;
@@ -159,6 +167,8 @@ public class YesAlready : IDalamudPlugin
         sb.AppendLine("Help menu");
         sb.AppendLine($"{Command} - Toggle the config window.");
         sb.AppendLine($"{Command} toggle - Toggle the plugin on/off.");
+        sb.AppendLine($"{Command} on - Enable the plugin.");
+        sb.AppendLine($"{Command} off - Disable the plugin.");
         sb.AppendLine($"{Command} last - Add the last seen YesNo dialog.");
         sb.AppendLine($"{Command} last no - Add the last seen YesNo dialog as a no.");
         sb.AppendLine($"{Command} last zone - Add the last seen YesNo dialog with the current zone name.");
