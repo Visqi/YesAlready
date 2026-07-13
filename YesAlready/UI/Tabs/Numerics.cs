@@ -31,7 +31,7 @@ public static class Numerics
             var createFolder = io.KeyShift;
             var zoneRestricted = io.KeyCtrl;
 
-            Configuration.CreateNode<NumericsEntryNode>(NumericsRootFolder, createFolder, zoneRestricted ? Player.Territory.Value.Name.ToString() : null);
+            Configuration.CreateNode<NumericsEntryNode>(NumericsRootFolder, createFolder, zoneRestricted ? Player.Territory.Value.PlaceName.Value.Name.ToString() : null);
             C.Save();
         }
 

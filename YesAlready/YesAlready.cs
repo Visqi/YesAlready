@@ -182,7 +182,7 @@ public class YesAlready : IDalamudPlugin
             return;
         }
 
-        Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? Player.Territory.Value.Name.ToString() : null, !selectNo);
+        Configuration.CreateNode<TextEntryNode>(C.RootFolder, createFolder, zoneRestricted ? Player.Territory.Value.PlaceName.Value.Name.ToString() : null, !selectNo);
         C.Save();
 
         Svc.Chat.PrintPluginMessage("Added a new text entry.");
