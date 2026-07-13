@@ -78,6 +78,7 @@ public partial class Configuration() : IPluginConfiguration
     public bool MiragePrismPrismSetConvertC { get; set; } = false;
     public bool AllowPartialFilling { get; set; } = true;
     public bool SelectStringAutoAcceptQuests { get; set; } = false;
+    public bool RequestFill { get; set; } = false;
 
     public List<CustomBother> CustomCallbacks { get; set; } = [];
 

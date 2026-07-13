@@ -1,6 +1,6 @@
-﻿using Dalamud.Game.ClientState.Keys;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
-using Dalamud.Bindings.ImGui;
 using System;
 using System.Linq;
 
@@ -382,6 +382,54 @@ public static class Bothers
             ImGuiX.IndentedTextColored("Automatically exchange items/currencies in various shops (e.g., scrip vendors).");
         }
         #endregion
+        #region Glamour
+        if (ImGui.CollapsingHeader("Glamour"))
+        {
+            var mpr = C.MiragePrismRemoveDispel;
+            if (ImGui.Checkbox("MiragePrismRemoveDispel", ref mpr))
+            {
+                C.MiragePrismRemoveDispel = mpr;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Automatically dispel glamours when using Glamour Dispellers.");
+
+            var mpe = C.MiragePrismExecuteCast;
+            if (ImGui.Checkbox("MiragePrismExecuteCast", ref mpe))
+            {
+                C.MiragePrismExecuteCast = mpe;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Automatically cast glamours when using Glamour Prisms.");
+
+            var mppsc = C.MiragePrismPrismSetConvert;
+            if (ImGui.Checkbox("MiragePrismPrismSetConvert", ref mppsc))
+            {
+                C.MiragePrismPrismSetConvert = mppsc;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Automatically store glamours. Only activates if you have all pieces.");
+
+            if (mppsc)
+            {
+                using var indent = ImRaii.PushIndent();
+                var apf = C.AllowPartialFilling;
+                if (ImGui.Checkbox("Allow partial fills", ref apf))
+                {
+                    C.AllowPartialFilling = apf;
+                    C.Save();
+                }
+                ImGuiX.IndentedTextColored("Automatically store glamours regardless of having all the pieces.");
+            }
+
+            var mppscc = C.MiragePrismPrismSetConvertC;
+            if (ImGui.Checkbox("MiragePrismPrismSetConvertC", ref mppscc))
+            {
+                C.MiragePrismPrismSetConvertC = mppscc;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Confirm glamour outfit conversion.");
+        }
+        #endregion
         #region Other
 
         if (ImGui.CollapsingHeader("Other"))
@@ -434,50 +482,6 @@ public static class Bothers
             }
             ImGuiX.IndentedTextColored("Automatically accept the Data Center travel confirmation.");
 
-            var mpr = C.MiragePrismRemoveDispel;
-            if (ImGui.Checkbox("MiragePrismRemoveDispel", ref mpr))
-            {
-                C.MiragePrismRemoveDispel = mpr;
-                C.Save();
-            }
-            ImGuiX.IndentedTextColored("Automatically dispel glamours when using Glamour Dispellers.");
-
-            var mpe = C.MiragePrismExecuteCast;
-            if (ImGui.Checkbox("MiragePrismExecuteCast", ref mpe))
-            {
-                C.MiragePrismExecuteCast = mpe;
-                C.Save();
-            }
-            ImGuiX.IndentedTextColored("Automatically cast glamours when using Glamour Prisms.");
-
-            var mppsc = C.MiragePrismPrismSetConvert;
-            if (ImGui.Checkbox("MiragePrismPrismSetConvert", ref mppsc))
-            {
-                C.MiragePrismPrismSetConvert = mppsc;
-                C.Save();
-            }
-            ImGuiX.IndentedTextColored("Automatically store glamours. Only activates if you have all pieces.");
-
-            if (mppsc)
-            {
-                using var indent = ImRaii.PushIndent();
-                var apf = C.AllowPartialFilling;
-                if (ImGui.Checkbox("Allow partial fills", ref apf))
-                {
-                    C.AllowPartialFilling = apf;
-                    C.Save();
-                }
-                ImGuiX.IndentedTextColored("Automatically store glamours regardless of having all the pieces.");
-            }
-
-            var mppscc = C.MiragePrismPrismSetConvertC;
-            if (ImGui.Checkbox("MiragePrismPrismSetConvertC", ref mppscc))
-            {
-                C.MiragePrismPrismSetConvertC = mppscc;
-                C.Save();
-            }
-            ImGuiX.IndentedTextColored("Confirm glamour outfit conversion.");
-
             var bpu = C.BannerPreviewUpdate;
             if (ImGui.Checkbox("BannerPreviewUpdate", ref bpu))
             {
@@ -485,6 +489,14 @@ public static class Bothers
                 C.Save();
             }
             ImGuiX.IndentedTextColored("Automatically update portraits.");
+
+            var rf = C.RequestFill;
+            if (ImGui.Checkbox("RequestFill", ref rf))
+            {
+                C.RequestFill = rf;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("Automatically fill requested items.");
         }
 
         #endregion
