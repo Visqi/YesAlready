@@ -29,6 +29,8 @@ public static class Bothers
         using var tab = ImRaii.TabItem("Bothers");
         if (!tab) return;
         using var idScope = ImRaii.PushId($"BothersOptions");
+        using var child = ImRaii.Child("BothersContent", System.Numerics.Vector2.Zero);
+        if (!child) return;
 
         #region Hotkey Settings
 

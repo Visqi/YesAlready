@@ -75,7 +75,11 @@ internal class MainWindow : Window
             DisplayMiscOptions();
             using (var tab = ImRaii.TabItem("Log"))
                 if (tab)
-                    InternalLog.PrintImgui();
+                {
+                    using var child = ImRaii.Child("LogContent", Vector2.Zero);
+                    if (child)
+                        InternalLog.PrintImgui();
+                }
         }
     }
 
@@ -87,6 +91,8 @@ internal class MainWindow : Window
         if (!tab) return;
         using var idScope = ImRaii.PushId($"{tabName}Options");
         displayButtons();
+        using var child = ImRaii.Child($"{tabName}NodeList", Vector2.Zero);
+        if (!child) return;
         displayNodes();
     }
 
@@ -95,6 +101,8 @@ internal class MainWindow : Window
     {
         using var tab = ImRaii.TabItem("Settings");
         if (!tab) return;
+        using var child = ImRaii.Child("SettingsContent", Vector2.Zero);
+        if (!child) return;
         using (ImRaii.PushId("Server info bar"))
         {
             try
