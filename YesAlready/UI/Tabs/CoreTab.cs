@@ -88,7 +88,7 @@ public class CoreTab : BaseTab
         ImGui.SetNextItemWidth(150);
         if (ImGui.BeginCombo("##ViewMode", CurrentViewMode.ToString()))
         {
-            foreach (ViewMode mode in Enum.GetValues(typeof(ViewMode)))
+            foreach (var mode in Enum.GetValues<ViewMode>())
             {
                 if (ImGui.Selectable(mode.ToString(), CurrentViewMode == mode))
                 {

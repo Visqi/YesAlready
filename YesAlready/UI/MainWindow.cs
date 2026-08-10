@@ -1,4 +1,5 @@
 using Dalamud.Game.Text;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
@@ -8,6 +9,7 @@ using ECommons.Reflection;
 using Dalamud.Bindings.ImGui;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using YesAlready.UI.Tabs;
 using static YesAlready.UI.Tabs.CoreTab;
@@ -96,13 +98,29 @@ internal class MainWindow : Window
         displayNodes();
     }
 
-    private readonly XivChatType? selectedChannel;
+    private static readonly string[] HotkeyChoices =
+    [
+        "None",
+        "Control",
+        "Alt",
+        "Shift",
+    ];
+
+    private static readonly VirtualKey[] HotkeyValues =
+    [
+        VirtualKey.NO_KEY,
+        VirtualKey.CONTROL,
+        VirtualKey.MENU,
+        VirtualKey.SHIFT,
+    ];
+
     private void DisplayMiscOptions()
     {
         using var tab = ImRaii.TabItem("Settings");
         if (!tab) return;
         using var child = ImRaii.Child("SettingsContent", Vector2.Zero);
         if (!child) return;
+
         using (ImRaii.PushId("Server info bar"))
         {
             try
@@ -138,8 +156,7 @@ internal class MainWindow : Window
                 {
                     using (ImRaii.PushId(type.ToString()))
                     {
-                        var selected = ImGui.Selectable($"{type}", type == selectedChannel);
-
+                        var selected = ImGui.Selectable($"{type}", type == C.MessageChannel);
                         if (selected)
                         {
                             C.MessageChannel = type;
@@ -150,6 +167,64 @@ internal class MainWindow : Window
             }
         }
         ImGuiX.IndentedTextColored($"Select the chat channel for {Name} messages to output to.");
+
+        DrawHotkeySettings();
+    }
+
+    private static void DrawHotkeySettings()
+    {
+        if (!HotkeyValues.Contains(C.DisableKey))
+        {
+            C.DisableKey = VirtualKey.NO_KEY;
+            C.Save();
+        }
+
+        var disableHotkeyIndex = Array.IndexOf(HotkeyValues, C.DisableKey);
+
+        ImGui.SetNextItemWidth(85);
+        if (ImGui.Combo("Disable Hotkey", ref disableHotkeyIndex, HotkeyChoices, HotkeyChoices.Length))
+        {
+            C.DisableKey = HotkeyValues[disableHotkeyIndex];
+            C.Save();
+        }
+
+        ImGuiX.IndentedTextColored("While this key is held, the plugin is disabled.");
+
+        if (!HotkeyValues.Contains(C.ForcedYesKey))
+        {
+            C.ForcedYesKey = VirtualKey.NO_KEY;
+            C.Save();
+        }
+
+        var forcedYesHotkeyIndex = Array.IndexOf(HotkeyValues, C.ForcedYesKey);
+
+        ImGui.SetNextItemWidth(85);
+        if (ImGui.Combo("Forced Yes Hotkey", ref forcedYesHotkeyIndex, HotkeyChoices, HotkeyChoices.Length))
+        {
+            C.ForcedYesKey = HotkeyValues[forcedYesHotkeyIndex];
+            C.Save();
+        }
+
+        ImGui.SameLine();
+        var separateForcedKeys = C.SeparateForcedKeys;
+        if (ImGui.Checkbox("Separate Yes/Talk", ref separateForcedKeys))
+        {
+            C.SeparateForcedKeys = separateForcedKeys;
+            C.Save();
+        }
+
+        if (C.SeparateForcedKeys)
+        {
+            var forcedTalkHotkeyIndex = Array.IndexOf(HotkeyValues, C.ForcedTalkKey);
+            ImGui.SetNextItemWidth(85);
+            if (ImGui.Combo("Forced Talk Hotkey", ref forcedTalkHotkeyIndex, HotkeyChoices, HotkeyChoices.Length))
+            {
+                C.ForcedTalkKey = HotkeyValues[forcedTalkHotkeyIndex];
+                C.Save();
+            }
+        }
+
+        ImGuiX.IndentedTextColored("While this key is held, any Yes/No prompt will always default to yes, and all talk dialogue will be skipped. Be careful.");
     }
 
     // ====================================================================================================
@@ -518,7 +593,7 @@ internal class MainWindow : Window
         if (node == C.CustomRootFolder) return C.CustomRootFolder;
 
         var current = node;
-        while (C.TryFindParent(current, out var parent))
+        while (C.TryFindParent(current, out var parent) && parent != null)
         {
             if (parent == YesNoRootFolder) return YesNoRootFolder;
             if (parent == OkRootFolder) return OkRootFolder;

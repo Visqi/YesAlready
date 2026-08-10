@@ -1,8 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface.Utility.Raii;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -10,22 +8,6 @@ namespace YesAlready.UI.Tabs;
 
 public static class Bothers
 {
-    private static readonly string[] hotkeyChoices =
-    [
-        "None",
-        "Control",
-        "Alt",
-        "Shift",
-    ];
-
-    private static readonly VirtualKey[] hotkeyValues =
-    [
-        VirtualKey.NO_KEY,
-        VirtualKey.CONTROL,
-        VirtualKey.MENU,
-        VirtualKey.SHIFT,
-    ];
-
     private static readonly (BotherCategory Category, string Header)[] CategoryHeaders =
     [
         (BotherCategory.Desynthesis, "Desynthesis and Aetherial Reduction"),
@@ -48,8 +30,6 @@ public static class Bothers
         using var child = ImRaii.Child("BothersContent", System.Numerics.Vector2.Zero);
         if (!child) return;
 
-        DrawHotkeys();
-
         var bothersByCategory = FeatureRegistry.Get().GetBothers()
             .GroupBy(x => x.Bother.Category)
             .ToDictionary(g => g.Key, g => g.ToList());
@@ -65,65 +45,6 @@ public static class Bothers
             foreach (var (feature, bother) in bothers)
                 DrawBother(feature, bother);
         }
-    }
-
-    private static void DrawHotkeys()
-    {
-        if (!ImGui.CollapsingHeader("Hotkey Settings"))
-            return;
-
-        if (!hotkeyValues.Contains(C.DisableKey))
-        {
-            C.DisableKey = VirtualKey.NO_KEY;
-            C.Save();
-        }
-
-        var disableHotkeyIndex = Array.IndexOf(hotkeyValues, C.DisableKey);
-
-        ImGui.SetNextItemWidth(85);
-        if (ImGui.Combo("Disable Hotkey", ref disableHotkeyIndex, hotkeyChoices, hotkeyChoices.Length))
-        {
-            C.DisableKey = hotkeyValues[disableHotkeyIndex];
-            C.Save();
-        }
-
-        ImGuiX.IndentedTextColored("While this key is held, the plugin is disabled.");
-
-        if (!hotkeyValues.Contains(C.ForcedYesKey))
-        {
-            C.ForcedYesKey = VirtualKey.NO_KEY;
-            C.Save();
-        }
-
-        var forcedYesHotkeyIndex = Array.IndexOf(hotkeyValues, C.ForcedYesKey);
-
-        ImGui.SetNextItemWidth(85);
-        if (ImGui.Combo("Forced Yes Hotkey", ref forcedYesHotkeyIndex, hotkeyChoices, hotkeyChoices.Length))
-        {
-            C.ForcedYesKey = hotkeyValues[forcedYesHotkeyIndex];
-            C.Save();
-        }
-
-        ImGui.SameLine();
-        var separateForcedKeys = C.SeparateForcedKeys;
-        if (ImGui.Checkbox("Separate Yes/Talk", ref separateForcedKeys))
-        {
-            C.SeparateForcedKeys = separateForcedKeys;
-            C.Save();
-        }
-
-        if (C.SeparateForcedKeys)
-        {
-            var forcedTalkHotkeyIndex = Array.IndexOf(hotkeyValues, C.ForcedTalkKey);
-            ImGui.SetNextItemWidth(85);
-            if (ImGui.Combo("Forced Talk Hotkey", ref forcedTalkHotkeyIndex, hotkeyChoices, hotkeyChoices.Length))
-            {
-                C.ForcedTalkKey = hotkeyValues[forcedTalkHotkeyIndex];
-                C.Save();
-            }
-        }
-
-        ImGuiX.IndentedTextColored("2. While this key is held, any Yes/No prompt will always default to yes, and all talk dialogue will be skipped. Be careful.");
     }
 
     private static void DrawBother(AddonFeature feature, BotherAttribute bother)
