@@ -7,7 +7,7 @@ internal class ContentsFinderConfirm : AddonFeature
 
     protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
     {
-        new AddonMaster.ContentsFinderConfirm(atk).Commence();
+        addonInfo.GetAddon<AddonContentsFinderConfirm>()->CommenceButton->Click();
 
         if (C.ContentsFinderOneTimeConfirmEnabled)
         {

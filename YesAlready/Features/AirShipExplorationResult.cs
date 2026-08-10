@@ -7,12 +7,10 @@ internal class AirShipExplorationResult : AddonFeature
 
     protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
     {
-        var addon = new AddonMaster.AirShipExplorationResult(atk);
-
         if (C.AirShipExplorationResultFinalize)
-            addon.FinalizeReport();
+            addonInfo.GetAddon<AddonAirShipExplorationResult>()->FinalizeReportButton->Click();
 
         if (C.AirShipExplorationResultRedeploy)
-            addon.Redeploy();
+            addonInfo.GetAddon<AddonAirShipExplorationResult>()->RedeployButton->Click();
     }
 }

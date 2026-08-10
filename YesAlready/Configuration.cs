@@ -42,8 +42,14 @@ public partial class Configuration() : IPluginConfiguration
     public bool ContentsFinderConfirmEnabled { get; set; } = false;
     public bool ContentsFinderOneTimeConfirmEnabled { get; set; } = false;
     public bool InclusionShopRememberEnabled { get; set; } = false;
-    public uint InclusionShopRememberCategory { get; set; } = 0;
-    public uint InclusionShopRememberSubcategory { get; set; } = 0;
+    public List<InclusionShopSave> InclusionShopSaves { get; set; } = [];
+
+    public struct InclusionShopSave
+    {
+        public uint ShopId { get; set; }
+        public byte Category { get; set; }
+        public byte SubCategory { get; set; }
+    }
     public bool GuildLeveDifficultyConfirm { get; set; } = false;
     public bool FallGuysRegisterConfirm { get; set; } = false;
     public bool FallGuysExitConfirm { get; set; } = false;

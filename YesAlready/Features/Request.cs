@@ -1,4 +1,4 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.Interop;
@@ -9,9 +9,6 @@ namespace YesAlready.Features;
 [AddonFeature(AddonEvent.PostSetup)]
 internal unsafe class Request : AddonFeature
 {
-    private static readonly delegate* unmanaged<NpcTrade*, byte> CanSatisfyRequests = (delegate* unmanaged<NpcTrade*, byte>)Svc.SigScanner.ScanText("0F B6 91 ?? ?? ?? ?? C6 81 ?? ?? ?? ?? ?? 48 83 C1 08");
-    private static readonly delegate* unmanaged<AgentNpcTrade*, ushort, uint, uint, void> SelectTurnInSlot = (delegate* unmanaged<AgentNpcTrade*, ushort, uint, uint, void>)Svc.SigScanner.ScanText("44 89 44 24 ?? 53 41 54 41 56");
-
     protected override bool IsEnabled() => C.RequestFill;
 
     protected override void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
@@ -24,7 +21,7 @@ internal unsafe class Request : AddonFeature
             return;
         }
 
-        if (npcTrade->Requests.Count == 0 || CanSatisfyRequests(npcTrade) == 0)
+        if (npcTrade->Requests.Count == 0 || !npcTrade->CanSatisfyRequests())
         {
             Log($"No requests or cannot satisfy requests");
             return;
@@ -38,7 +35,7 @@ internal unsafe class Request : AddonFeature
             if (agent->SelectedTurnInSlot >= 0)
                 return; // mid-select
 
-            SelectTurnInSlot(agent, (ushort)slot, 0, 0);
+            agent->SelectTurnInSlot((ushort)slot);
             if (agent->SelectedTurnInSlot != slot || agent->SelectedTurnInSlotItemOptions <= 0)
                 return;
 

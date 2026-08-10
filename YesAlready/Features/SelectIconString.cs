@@ -8,15 +8,14 @@ internal class SelectIconString : TextMatchingFeature
 {
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
-        var addon = new AddonMaster.SelectIconString(atk);
-        Service.Watcher.LastSeenListEntries = [.. addon.Entries.Select(x => (x.Index, x.Text))];
-        return string.Join(", ", addon.Entries.Select(x => x.Text));
+        var entries = PopupMenuEntries.GetIndexed((PopupMenu*)&((AddonSelectIconString*)atk)->PopupMenu);
+        Service.Watcher.LastSeenListEntries = [.. entries];
+        return string.Join(", ", entries.Select(x => x.Text));
     }
 
     protected override unsafe object? ShouldProceed(string text, AtkUnitBase* atk)
     {
-        if (!GenericHelpers.TryGetAddonMaster<AddonMaster.SelectIconString>(out var addon)) return null;
-        string[] entries = [.. addon.Entries.Select(x => x.Text)];
+        string[] entries = PopupMenuEntries.GetTexts((PopupMenu*)&((AddonSelectIconString*)atk)->PopupMenu);
 
         if (C.SelectStringAutoAcceptQuests)
             foreach (var e in entries)
@@ -49,7 +48,6 @@ internal class SelectIconString : TextMatchingFeature
     protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode)
     {
         if (matchingNode is not int index) return;
-        var addon = new AddonMaster.SelectIconString(atk);
-        addon.Entries[index].Select();
+        Callback.Fire(atk, true, index);
     }
 }

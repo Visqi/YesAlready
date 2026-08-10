@@ -33,9 +33,5 @@ internal class Talk : TextMatchingFeature
         return null;
     }
 
-    protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode)
-    {
-        if (GenericHelpers.TryGetAddonMaster<AddonMaster.Talk>(out var addon))
-            addon.Click();
-    }
+    protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode) => AddonTalk.Progress();
 }

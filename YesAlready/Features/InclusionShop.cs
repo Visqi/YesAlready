@@ -1,69 +1,88 @@
-using System;
-using ECommons.EzHookManager;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
 namespace YesAlready.Features;
 
-[AddonFeature(AddonEvent.PostSetup)]
+[AddonFeature(AddonEvent.PreSetup)]
+[AddonFeature(AddonEvent.PostRefresh)]
 internal class InclusionShop : AddonFeature
 {
     protected override bool IsEnabled() => C.InclusionShopRememberEnabled;
 
     protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
     {
-        if (!GenericHelpers.IsAddonReady(atk)) return;
+        var agent = AgentInclusionShop.Instance();
+        if (agent == null || agent->Data == null || !agent->Data->IsShopReady)
+            return;
 
-        PluginLog.Debug($"Firing 12,{C.InclusionShopRememberCategory}");
-        using var categoryValues = new AtkValueArray(12, C.InclusionShopRememberCategory);
-        atk->FireCallback(2, categoryValues);
+        var data = agent->Data;
+        switch (eventType)
+        {
+            case AddonEvent.PreSetup:
+                Restore(agent, data, addonInfo);
+                break;
 
-        PluginLog.Debug($"Firing 13,{C.InclusionShopRememberSubcategory}");
-        using var subcategoryValues = new AtkValueArray(13, C.InclusionShopRememberSubcategory);
-        atk->FireCallback(2, subcategoryValues);
+            case AddonEvent.PostRefresh:
+                Remember(data->InclusionShopId, data->SelectedCategoryIndex, data->SelectedSubCategoryTab);
+                break;
+        }
     }
 
-    [EzHook("40 53 48 83 EC ?? 48 8B DA 4D 8B D0", detourName: nameof(AgentReceiveEventDetour), true)]
-    private readonly EzHook<AgentReceiveEventDelegate> agentReceiveEventHook = null!;
-    private unsafe delegate IntPtr AgentReceiveEventDelegate(IntPtr agent, IntPtr eventData, AtkValue* values, uint valueCount, ulong eventKind);
-
-    public InclusionShop()
+    private unsafe void Restore(AgentInclusionShop* agent, AgentInclusionShop.AgentData* data, AddonArgs addonInfo)
     {
-        EzSignatureHelper.Initialize(this);
+        if (!TryGetRemembered(data->InclusionShopId, out var category, out var subCategory))
+            return;
+
+        if (category >= data->CategoryCount)
+        {
+            Log($"Remembered category {category} out of range (count={data->CategoryCount}), skipping");
+            return;
+        }
+
+        Log($"Restoring shop {data->InclusionShopId}: category={category}, subcategory={subCategory}");
+
+        if (addonInfo is AddonSetupArgs { AtkValueCount: > 2 } setup) // setup just reads [2], calling SelectCategory isn't enough at this point
+            setup.AtkValues.Cast<AtkValue>()[2].SetUInt(category);
+
+        agent->SelectCategory(category);
+        if (!data->SelectSubCategory(subCategory))
+            Log($"Remembered subcategory {subCategory} out of range (visible={data->VisibleSubCategoryCount})");
     }
 
-    private unsafe IntPtr AgentReceiveEventDetour(IntPtr agent, IntPtr eventData, AtkValue* values, uint valueCount, ulong eventKind)
+    private void Remember(uint shopId, byte category, byte subCategory)
     {
-        IntPtr Original() => agentReceiveEventHook.Original(agent, eventData, values, valueCount, eventKind);
+        var saves = C.InclusionShopSaves;
+        var index = saves.FindIndex(m => m.ShopId == shopId);
+        if (index >= 0 && saves[index].Category == category && saves[index].SubCategory == subCategory)
+            return;
 
-        if (valueCount != 2)
-            return Original();
-
-        var atkValue0 = values[0];
-        if (atkValue0.Type != AtkValueType.Int)
-            return Original();
-
-        var val0 = atkValue0.Int;
-        if (val0 == 12)
+        Log($"Remembering shop {shopId}: category={category}, subcategory={subCategory}");
+        var memory = new Configuration.InclusionShopSave
         {
-            var val1 = values[1].UInt;
-            if (val1 != C.InclusionShopRememberCategory)
-            {
-                PluginLog.Debug($"Remembring InclusionShop category: {val1}");
-                C.InclusionShopRememberCategory = val1;
-                C.InclusionShopRememberSubcategory = 0;
-                C.Save();
-            }
-        }
-        else if (val0 == 13)
+            ShopId = shopId,
+            Category = category,
+            SubCategory = subCategory,
+        };
+
+        if (index >= 0)
+            saves[index] = memory;
+        else
+            saves.Add(memory);
+
+        C.Save();
+    }
+
+    private static bool TryGetRemembered(uint shopId, out byte category, out byte subCategory)
+    {
+        if (C.InclusionShopSaves.FindIndex(m => m.ShopId == shopId) is not (>= 0 and var index))
         {
-            var val1 = values[1].UInt;
-            if (val1 != C.InclusionShopRememberSubcategory)
-            {
-                PluginLog.Debug($"Remembring InclusionShop subcategory: {val1}");
-                C.InclusionShopRememberSubcategory = val1;
-                C.Save();
-            }
+            category = 0;
+            subCategory = 0;
+            return false;
         }
 
-        return Original();
+        var memory = C.InclusionShopSaves[index];
+        category = memory.Category;
+        subCategory = memory.SubCategory;
+        return true;
     }
 }

@@ -8,6 +8,7 @@ using ECommons.Singletons;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -30,7 +31,12 @@ public class YesAlready : IDalamudPlugin
     public YesAlready(IDalamudPluginInterface pluginInterface)
     {
         P = this;
+        clib.CLibMain.Init(pluginInterface, this);
         ECommonsMain.Init(pluginInterface, P);
+
+#if LOCAL_CS
+        pluginInterface.InitCustomClientStructs();
+#endif
 
         C = Svc.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         C.Migrate();
@@ -86,6 +92,7 @@ public class YesAlready : IDalamudPlugin
     public void Dispose()
     {
         Svc.PluginInterface.UiBuilder.OpenMainUi -= EzConfigGui.Toggle;
+        clib.CLibMain.Dispose();
         ECommonsMain.Dispose();
     }
 

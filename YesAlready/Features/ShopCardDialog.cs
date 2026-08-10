@@ -7,8 +7,8 @@ internal class ShopCardDialog : AddonFeature
 
     protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
     {
-        var addon = new AddonMaster.ShopCardDialog(atk);
-        addon.Quantity = addon.MaxQuantity;
-        addon.Sell();
+        var addon = addonInfo.GetAddon<AddonShopCardDialog>();
+        addon->CardQuantityInput->SetValue(addon->CardQuantityInput->Data.Max);
+        addon->GetComponentButtonById(16)->Click(); // SellButton
     }
 }

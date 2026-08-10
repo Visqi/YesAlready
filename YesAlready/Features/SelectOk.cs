@@ -7,7 +7,7 @@ internal class SelectOk : TextMatchingFeature
 {
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
-        var text = new AddonMaster.SelectOk(atk).Text;
+        var text = ((AddonSelectOk*)atk)->PromptText->NodeText.GetText();
         Service.Watcher.LastSeenOkText = text;
         return text;
     }
@@ -26,5 +26,6 @@ internal class SelectOk : TextMatchingFeature
         return null;
     }
 
-    protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode) => new AddonMaster.SelectOk(atk).Ok();
+    protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode)
+        => ((AddonSelectOk*)atk)->OkButton->Click();
 }

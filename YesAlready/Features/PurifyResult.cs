@@ -1,6 +1,3 @@
-using Lumina.Excel.Sheets;
-using System.Linq;
-
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostUpdate)]
@@ -12,10 +9,11 @@ internal class PurifyResult : AddonFeature
     {
         if (!GenericHelpers.IsAddonReady(atk)) return;
 
-        if (atk->GetTextNodeById(2)->NodeText.GetText() == Svc.Data.GetExcelSheet<Addon>().First(x => x.RowId == 2171).Text)
-        {
-            PluginLog.Debug("Closing Purify Results menu");
-            Callback.Fire(atk, true, -1);
-        }
+        var addon = (AddonPurifyResult*)atk;
+        if (addon->TypedAtkValues->ResultsMode.UInt == 0) // non-zero when done
+            return;
+
+        PluginLog.Debug("Closing Purify Results menu");
+        Callback.Fire(atk, true, -1);
     }
 }

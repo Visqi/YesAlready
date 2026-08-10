@@ -45,6 +45,10 @@ public abstract class TextMatchingFeature : AddonFeature
     protected bool EntryMatchesText(string pattern, string text, bool isRegex)
     {
         if (string.IsNullOrEmpty(pattern)) return false;
+
+        pattern = pattern.NormalizeForMatch();
+        text = text.NormalizeForMatch();
+
         if (isRegex)
         {
             try
@@ -73,6 +77,9 @@ public abstract class TextMatchingFeature : AddonFeature
 
     protected int? GetMatchingIndex(string pattern, string text, bool isRegex)
     {
+        pattern = pattern.NormalizeForMatch();
+        text = text.NormalizeForMatch();
+
         if (isRegex)
         {
             try

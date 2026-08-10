@@ -4,6 +4,7 @@
 //internal class MaterializeDialog : AddonFeature
 //{
 //    protected override bool IsEnabled() => C.MaterializeDialogEnabled;
-
-//    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk) => new AddonMaster.MaterializeDialog(atk).Materialize();
+//
+//    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+//        => addonInfo.GetAddon<AddonMaterializeDialog>()->YesButton->Click();
 //}

@@ -1,10 +1,11 @@
+global using clib.Extensions;
 global using Dalamud.Game.Addon.Lifecycle;
 global using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 global using ECommons;
 global using ECommons.Automation;
 global using ECommons.DalamudServices;
 global using ECommons.Logging;
-global using ECommons.UIHelpers.AddonMasterImplementations;
+global using FFXIVClientStructs.FFXIV.Client.UI;
 global using FFXIVClientStructs.FFXIV.Component.GUI;
 global using YesAlready.BaseFeatures;
 global using YesAlready.Utils;

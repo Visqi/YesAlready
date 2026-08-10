@@ -1,5 +1,7 @@
-using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Memory;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ internal class SelectYesno : TextMatchingFeature
 {
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
-        var text = new AddonMaster.SelectYesno(atk).TextLegacy;
+        var text = GetTextLegacy(atk);
         Service.Watcher.LastSeenDialogText = text;
         return text;
     }
@@ -32,7 +34,7 @@ internal class SelectYesno : TextMatchingFeature
             return new TextEntryNode { IsYes = true };
         }
 
-        if (C.PartyFinderJoinConfirm && GenericHelpers.TryGetAddonByName<AtkUnitBase>("LookingForGroupDetail", out var _) && lfgPatterns.Any(r => r.IsMatch(text)))
+        if (C.PartyFinderJoinConfirm && IsPartyFinderJoinConfirm(atk))
         {
             Log($"Entry is party finder join confirmation");
             return new TextEntryNode { IsYes = true };
@@ -41,46 +43,50 @@ internal class SelectYesno : TextMatchingFeature
         if (C.AutoCollectable && collectablePatterns.Any(text.Contains))
         {
             Log($"Entry is collectable");
-            var name = Enum.GetValues<SeIconChar>().Cast<SeIconChar>().Aggregate(atk->AtkValues[15].String.AsDalamudSeString().GetText(), (current, enumValue) => current.Replace(enumValue.ToIconString(), "")).Trim();
-            if (GenericHelpers.FindRow<Item>(x => x.IsCollectable && !x.Singular.IsEmpty && name.Contains(x.Singular.GetText(), StringComparison.InvariantCultureIgnoreCase)) is { RowId: > 0 } item)
+            var addon = (AddonSelectYesno*)atk;
+            if (!addon->CollectibleAtkValuesAvailable)
             {
-                Log($"Detected item [{item}] {item.Name}");
-                if (int.TryParse(Regex.Match(text, @"\d+").Value, out var value))
+                Log("Collectible AtkValues not available");
+            }
+            else
+            {
+                if (GenericHelpers.GetRow<Item>(ItemUtil.GetBaseId(addon->CollectibleTypedAtkValues->ItemId.UInt).ItemId) is { } item)
                 {
-                    if (GenericHelpers.FindSubrow<CollectablesShopItem>(x => x.Item.Value.RowId == item.RowId) is { } collectability)
+                    Log($"Detected item [{item}] {item.Name}");
+                    if (int.TryParse(Regex.Match(text, @"\d+").Value, out var value))
                     {
-                        var min = collectability.CollectablesShopRefine.Value.LowCollectability;
-                        Log($"Minimum collectability required is {min}, value detected is {value}");
-                        if (value >= min)
+                        if (GenericHelpers.FindSubrow<CollectablesShopItem>(x => x.Item.Value.RowId == item.RowId) is { } collectability)
                         {
-                            Log($"Entry is [{item}] {item.Name} with a sufficient collectability of {value}");
-                            return new TextEntryNode { IsYes = true };
-                        }
-                        else
-                        {
+                            var min = collectability.CollectablesShopRefine.Value.LowCollectability;
+                            Log($"Minimum collectability required is {min}, value detected is {value}");
+                            if (value >= min)
+                            {
+                                Log($"Entry is [{item}] {item.Name} with a sufficient collectability of {value}");
+                                return new TextEntryNode { IsYes = true };
+                            }
+
                             Log($"Entry is [{item}] {item.Name} with an insufficient collectability of {value}");
                             return new TextEntryNode { IsYes = false };
                         }
-                    }
-                    else
-                    {
+
                         if (item.AetherialReduce > 0) // aethersand fish aren't turned in for scrips so collectability doesn't matter
                         {
                             Log($"Entry is [#{item.RowId}] {item.Name} and probably an aethersand fish. Skipping collectability check.");
                             return new TextEntryNode { IsYes = true };
                         }
-                        else if (GenericHelpers.TryGetRow<WKSItemInfo>(item.AdditionalData.RowId, out var wksItem)) // stellar fish are scored based on collective collectability so individual doesn't matter
+
+                        if (GenericHelpers.TryGetRow<WKSItemInfo>(item.AdditionalData.RowId, out var wksItem)) // stellar fish are scored based on collective collectability so individual doesn't matter
                         {
                             Log($"Entry is [#{item.RowId}] {item.Name} for {wksItem.WKSItemSubCategory.ValueNullable?.Name ?? "null"}. Skipping collectability check.");
                             return new TextEntryNode { IsYes = true };
                         }
-                        else
-                            Log($"Failed to find matching CollectablesShopItem for [{item.RowId}] {item.Name}. Not an aethersand fish or a CE fish. Ping the dev or create a git issue if you found this message erroneously.");
+
+                        Log($"Failed to find matching CollectablesShopItem for [{item.RowId}] {item.Name}. Not an aethersand fish or a CE fish. Ping the dev or create a git issue if you found this message erroneously.");
                     }
                 }
+                else
+                    Log($"Failed to match any collectable to item id {ItemUtil.GetBaseId(addon->CollectibleTypedAtkValues->ItemId.UInt).ItemId}");
             }
-            else
-                Log($"Failed to match any collectable to {name} [original={atk->AtkValues[15].String}]");
         }
 
         var nodes = C.GetAllNodes().OfType<TextEntryNode>();
@@ -102,20 +108,33 @@ internal class SelectYesno : TextMatchingFeature
     protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode)
     {
         if (matchingNode is not TextEntryNode node) return;
+        var addon = (AddonSelectYesno*)atk;
         if (node.IsYes)
-            new AddonMaster.SelectYesno(atk).Yes();
+            addon->YesButton->Click();
         else
-            new AddonMaster.SelectYesno(atk).No();
+            addon->NoButton->Click();
     }
 
-    private static readonly List<Regex> lfgPatterns =
-    [
-        new Regex(@"Join .* party\?"),
-        new Regex(@".*のパーティに参加します。よろしいですか？"),
-        new Regex(@"Der Gruppe von .* beitreten\?"),
-        new Regex(@"Rejoindre l'équipe de .*\?")
-        // if someone could add the chinese and korean translations that'd be nice
-    ];
+    private static unsafe bool IsPartyFinderJoinConfirm(AtkUnitBase* selectYesno)
+    {
+        var agent = AgentLookingForGroup.Instance();
+        if (agent == null || !agent->IsAgentActive())
+            return false;
+
+        var joinConfirmAddonId = agent->JoinConfirmAddonId;
+        return joinConfirmAddonId != 0 && selectYesno->Id == joinConfirmAddonId;
+    }
+
+    private static unsafe string GetTextLegacy(AtkUnitBase* atk)
+    {
+        if (atk->AtkValues == null || atk->AtkValuesCount == 0 || !atk->AtkValues[0].String.HasValue)
+            return string.Empty;
+
+        var se = MemoryHelper.ReadSeStringNullTerminated((nint)atk->AtkValues[0].String.Value);
+        return string.Join(string.Empty, se.Payloads.OfType<TextPayload>().Select(t => t.Text))
+            .Replace('\n', ' ')
+            .Trim();
+    }
 
     private readonly List<string> collectablePatterns =
     [

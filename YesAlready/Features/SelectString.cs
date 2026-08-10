@@ -8,15 +8,14 @@ internal class SelectString : TextMatchingFeature
 {
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
-        var addon = new AddonMaster.SelectString(atk);
-        Service.Watcher.LastSeenListEntries = [.. addon.Entries.Select(x => (x.Index, x.Text))];
-        return string.Join(", ", addon.Entries.Select(x => x.Text));
+        var entries = PopupMenuEntries.GetIndexed((PopupMenu*)&((AddonSelectString*)atk)->PopupMenu);
+        Service.Watcher.LastSeenListEntries = [.. entries];
+        return string.Join(", ", entries.Select(x => x.Text));
     }
 
     protected override unsafe object? ShouldProceed(string text, AtkUnitBase* atk)
     {
-        if (!GenericHelpers.TryGetAddonMaster<AddonMaster.SelectString>(out var addon)) return null;
-        string[] entries = [.. addon.Entries.Select(x => x.Text)];
+        string[] entries = PopupMenuEntries.GetTexts((PopupMenu*)&((AddonSelectString*)atk)->PopupMenu);
 
         var nodes = C.GetAllNodes().OfType<ListEntryNode>();
         foreach (var node in nodes)
@@ -47,6 +46,6 @@ internal class SelectString : TextMatchingFeature
     protected override unsafe void Proceed(AtkUnitBase* atk, object? matchingNode)
     {
         if (matchingNode is not int index) return;
-        new AddonMaster.SelectString(atk).Entries[index].Select();
+        AddonSelectString.Select(index);
     }
 }

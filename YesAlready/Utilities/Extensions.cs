@@ -1,6 +1,7 @@
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using Lumina.Text.ReadOnly;
 using System;
 using System.Linq;
@@ -13,13 +14,20 @@ public static class Extensions
     public static string WithoutWhitespace(this string str)
         => new([.. str.Where(c => !char.IsWhiteSpace(c))]);
 
-    public static bool ContainsIgnoreWhitespace(this string text, string pattern, StringComparison comparison = StringComparison.Ordinal)
-        => text.WithoutWhitespace().Contains(pattern.WithoutWhitespace(), comparison);
+    /// <summary>
+    /// Soft hyphens / newlines that differ between prompt sources.
+    /// </summary>
+    public static string NormalizeForMatch(this string str)
+        => str.StripSoftHyphen().Replace('\n', ' ').Replace('\r', ' ').Trim();
+
+    public static bool ContainsIgnoreWhitespace(this string text, string pattern, StringComparison comparison = StringComparison.OrdinalIgnoreCase)
+        => text.NormalizeForMatch().WithoutWhitespace().Contains(pattern.NormalizeForMatch().WithoutWhitespace(), comparison);
 
     public static bool EqualsIgnoreSpecial(this ReadOnlySeString ross, string str)
     {
         // french has nbsps we need to ignore
-        return ross.ExtractText().WithoutWhitespace().Equals(str.WithoutWhitespace(), StringComparison.InvariantCultureIgnoreCase);
+        return ross.ExtractText().NormalizeForMatch().WithoutWhitespace()
+            .Equals(str.NormalizeForMatch().WithoutWhitespace(), StringComparison.InvariantCultureIgnoreCase);
     }
 
     public static void PrintPluginMessage(this IChatGui chat, string msg)
