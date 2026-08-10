@@ -5,19 +5,19 @@ using Dalamud.Memory;
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
+[Bother(nameof(Configuration.ItemInspectionResultEnabled), BotherCategory.Forays,
+    "Eureka/Bozja lockboxes, forgotten fragments, and more. Warning: this does not check if you are maxed on items. Rate limiter (pause after N items).")]
 internal class ItemInspectionResult : AddonFeature
 {
     private int itemInspectionCount = 0;
 
-    protected override bool IsEnabled() => C.ItemInspectionResultEnabled;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
-        var addon = (AddonItemInspectionResult*)atk;
-        if (atk->UldManager.NodeListCount < 64) return;
+        var addon = addonInfo.GetAddon<AddonItemInspectionResult>();
+        if (addon->UldManager.NodeListCount < 64) return;
 
-        var nameNode = atk->GetTextNodeById(26);
-        var descNode = atk->GetTextNodeById(35);
+        var nameNode = addon->GetTextNodeById(26);
+        var descNode = addon->GetTextNodeById(35);
         if (nameNode == null || descNode == null || !nameNode->AtkResNode.IsVisible() || !descNode->AtkResNode.IsVisible())
             return;
 
@@ -43,8 +43,8 @@ internal class ItemInspectionResult : AddonFeature
             return;
         }
 
-        var nextButton = atk->GetComponentButtonById(74);
-        var closeButton = atk->GetComponentButtonById(73);
+        var nextButton = addon->GetComponentButtonById(74);
+        var closeButton = addon->GetComponentButtonById(73);
         if (values->HasNext.Int != 0 && nextButton->IsEnabled)
             nextButton->Click();
         else

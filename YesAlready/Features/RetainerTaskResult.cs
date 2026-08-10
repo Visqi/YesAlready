@@ -1,11 +1,10 @@
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
+[Bother(nameof(Configuration.RetainerTaskResultEnabled), BotherCategory.Retainers, "Automatically send a retainer on the same venture as before when receiving an item.")]
 internal class RetainerTaskResult : AddonFeature
 {
-    protected override bool IsEnabled() => C.RetainerTaskResultEnabled;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
         var addon = addonInfo.GetAddon<AddonRetainerTaskResult>();
         if (addon->ResultMode == 2) // 2 == recall

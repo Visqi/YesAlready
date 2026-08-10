@@ -4,11 +4,10 @@ namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PreSetup)]
 [AddonFeature(AddonEvent.PostRefresh)]
+[Bother(nameof(Configuration.InclusionShopRememberEnabled), BotherCategory.Shops, "Remember the last panel visited on the scrip exchange window.")]
 internal class InclusionShop : AddonFeature
 {
-    protected override bool IsEnabled() => C.InclusionShopRememberEnabled;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
         var agent = AgentInclusionShop.Instance();
         if (agent == null || agent->Data == null || !agent->Data->IsShopReady)

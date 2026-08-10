@@ -2,19 +2,18 @@ namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
 [AddonFeature(AddonEvent.PostUpdate)]
+[Bother(nameof(Configuration.KupoOfFortune), BotherCategory.Minigames, "Automatically select a kupo of fortune reward. This will instantly complete a single kupo ticket but is unable to continue to the next automatically.")]
 internal class HWDLottery : AddonFeature
 {
-    protected override bool IsEnabled() => C.KupoOfFortune;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
-        var addon = (AddonHWDLottery*)atk;
         switch (eventType)
         {
             case AddonEvent.PostSetup:
-                Callback.Fire(atk, true, 0, 1);
+                Callback.Fire(addonInfo.GetAddon<AtkUnitBase>(), true, 0, 1);
                 break;
             case AddonEvent.PostUpdate:
+                var addon = addonInfo.GetAddon<AddonHWDLottery>();
                 if (addon->Stage == 3 && addon->CloseButton != null && addon->CloseButton->IsEnabled)
                     addon->CloseButton->Click();
                 break;

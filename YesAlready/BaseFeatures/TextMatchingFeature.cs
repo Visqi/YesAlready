@@ -8,15 +8,15 @@ namespace YesAlready.BaseFeatures;
 
 public abstract class TextMatchingFeature : AddonFeature
 {
-    protected override bool IsEnabled() => true;
     protected abstract unsafe string GetSetLastSeenText(AtkUnitBase* atk);
     protected abstract unsafe object? ShouldProceed(string text, AtkUnitBase* atk);
     protected abstract unsafe void Proceed(AtkUnitBase* atk, object? matchingNode = null);
 
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
         if (!P.Active) return;
 
+        var atk = addonInfo.GetAddon<AtkUnitBase>();
         if (eventType is AddonEvent.PreFinalize && addonInfo.AddonName is "SelectString" or "SelectIconString")
         {
             SetEntry();

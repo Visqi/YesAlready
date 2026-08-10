@@ -10,18 +10,18 @@ using System.Collections.Generic;
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostUpdate)]
+[Bother(nameof(Configuration.CustomDeliveries), BotherCategory.Other, "Automatically turn in any available collectibles for Custom Deliveries.")]
 internal class SatisfactionSupply : AddonFeature
 {
-    protected override bool IsEnabled() => C.CustomDeliveries;
-
     private static bool Disabled;
     private static List<int> SlotsFilled { get; set; } = [];
     private static ulong RequestAllow;
 
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
-        if (Disabled || !atk->IsAddonReady()) return;
-        var addon = (AddonSatisfactionSupply*)atk;
+        var addon = addonInfo.GetAddon<AddonSatisfactionSupply>();
+        if (Disabled || !addon->AtkUnitBase.IsAddonReady()) return;
+
         var values = addon->TypedAtkValues;
         int[] quantities = [values->DoHOwnedQuantity.Int, values->MinBotOwnedQuantity.Int, values->FshOwnedQuantity.Int];
 
@@ -36,7 +36,7 @@ internal class SatisfactionSupply : AddonFeature
                     return;
                 }
                 Log($"Turning in item #{AgentSatisfactionSupply.Instance()->Items[index].Id}");
-                Callback.Fire(atk, false, 1, index);
+                Callback.Fire((AtkUnitBase*)addon, false, 1, index);
             }
         }
     }

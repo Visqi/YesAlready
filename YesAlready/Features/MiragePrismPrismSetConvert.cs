@@ -4,6 +4,11 @@ using System.Linq;
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostRefresh)]
+[Bother(nameof(Configuration.MiragePrismPrismSetConvert), BotherCategory.Glamour, "Automatically store glamours. Only activates if you have all pieces.")]
+[Bother(nameof(Configuration.AllowPartialFilling), BotherCategory.Glamour, "Automatically store glamours regardless of having all the pieces.",
+    label: "Allow partial fills",
+    ContributesToEnable = false,
+    RequiresEnabledProperty = nameof(Configuration.MiragePrismPrismSetConvert))]
 public class MiragePrismPrismSetConvert : AddonFeature
 {
     private enum ItemFlag : uint
@@ -14,13 +19,11 @@ public class MiragePrismPrismSetConvert : AddonFeature
         AlreadyInOutfit = 6,
     }
 
-    protected override bool IsEnabled() => C.MiragePrismPrismSetConvert;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
-        if (!atk->IsAddonReady()) return;
+        var addon = addonInfo.GetAddon<AddonMiragePrismPrismSetConvert>();
+        if (!addon->AtkUnitBase.IsAddonReady()) return;
 
-        var addon = (AddonMiragePrismPrismSetConvert*)atk;
         if (addon->AlreadyInDresserText != null && addon->AlreadyInDresserText->AtkResNode.IsVisible())
         {
             Svc.Chat.PrintPluginMessage($"Outfit already in dresser");
@@ -62,7 +65,7 @@ public class MiragePrismPrismSetConvert : AddonFeature
         var contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextIconMenu", 1).Address;
         if (contextMenu is null || !contextMenu->IsVisible)
         {
-            Callback.Fire(&addon->AtkUnitBase, true, 13, slot);
+            Callback.Fire((AtkUnitBase*)addon, true, 13, slot);
             return false;
         }
 

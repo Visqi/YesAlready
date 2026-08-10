@@ -2,9 +2,9 @@
 
 [AddonFeature(AddonEvent.PostSetup, "LobbyDKTCheck")]
 [AddonFeature(AddonEvent.PostSetup, "LobbyDKTCheckExec")]
+[Bother(nameof(Configuration.DataCentreTravelConfirmEnabled), BotherCategory.Other, "Automatically accept the Data Center travel confirmation.")]
 internal class LobbyDKTCheck : AddonFeature
 {
-    protected override bool IsEnabled() => C.DataCentreTravelConfirmEnabled;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk) => Callback.Fire(atk, true, 0);
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
+        => Callback.Fire(addonInfo.GetAddon<AtkUnitBase>(), true, 0);
 }

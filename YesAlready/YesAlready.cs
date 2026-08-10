@@ -8,9 +8,7 @@ using ECommons.Singletons;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using YesAlready.Interface;
 using YesAlready.UI;
@@ -52,41 +50,17 @@ public class YesAlready : IDalamudPlugin
         _ = new EzDtr(() => new SeString(new TextPayload($"{Name}: {(C.Enabled ? (Service.BlockListHandler.Locked ? "Paused" : "On") : "Off")}")), () => { C.Enabled ^= true; C.Save(); });
 
         LoadTerritories();
-        ToggleFeatures(true);
+        FeatureRegistry.Get().EnableAll();
 
         Svc.PluginInterface.UiBuilder.OpenMainUi += EzConfigGui.Toggle;
     }
 
     public static void ToggleFeatures(bool enable)
     {
-        var featureAssembly = Assembly.GetExecutingAssembly();
-
-        foreach (var type in featureAssembly.GetTypes())
-        {
-            if (typeof(BaseFeature).IsAssignableFrom(type) && !type.IsAbstract)
-            {
-                if (Activator.CreateInstance(type) is BaseFeature feature)
-                {
-                    if (enable)
-                        feature.Enable();
-                    else
-                        feature.Disable();
-                }
-            }
-        }
-    }
-
-    public T? GetFeature<T>() where T : BaseFeature
-    {
-        var type = typeof(T);
-
-        if (!typeof(BaseFeature).IsAssignableFrom(type) || type.IsAbstract)
-            return null;
-
-        if (Activator.CreateInstance(type) is T feature)
-            return feature;
-
-        return null;
+        if (enable)
+            FeatureRegistry.Get().EnableAll();
+        else
+            FeatureRegistry.Get().DisableAll();
     }
 
     public void Dispose()

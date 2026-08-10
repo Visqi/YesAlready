@@ -1,15 +1,15 @@
 using Dalamud.Game.ClientState.Conditions;
+using AddonMateriaAttachDialog = FFXIVClientStructs.FFXIV.Client.UI.AddonMateriaAttachDialog;
 
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
+[Bother(nameof(Configuration.MaterialAttachDialogEnabled), BotherCategory.Melding, "Remove the materia melding confirmation menu.")]
 internal class MateriaAttachDialog : AddonFeature
 {
-    protected override bool IsEnabled() => C.MaterialAttachDialogEnabled;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
-        var addon = (FFXIVClientStructs.FFXIV.Client.UI.AddonMateriaAttachDialog*)atk;
+        var addon = addonInfo.GetAddon<AddonMateriaAttachDialog>();
         var successRate = addon->TypedAtkValues->SuccessRate.Int;
         if (C.OnlyMeldWhenGuaranteed && successRate < 100)
         {
@@ -18,6 +18,6 @@ internal class MateriaAttachDialog : AddonFeature
         }
 
         Service.TaskManager.Enqueue(() => Svc.Condition[ConditionFlag.MeldingMateria]);
-        Service.TaskManager.Enqueue(() => atk->GetComponentButtonById(35)->Click()); // MeldButton
+        Service.TaskManager.Enqueue(() => addon->GetComponentButtonById(35)->Click()); // MeldButton
     }
 }

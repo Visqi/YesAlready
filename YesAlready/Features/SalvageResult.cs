@@ -2,12 +2,12 @@ namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
 [AddonFeature(AddonEvent.PostUpdate, "SalvageAutoDialog")]
+[Bother(nameof(Configuration.DesynthesisResults), BotherCategory.Desynthesis, "Automatically closes the SalvageResults window when done desynthesizing.")]
 internal class SalvageResult : AddonFeature
 {
-    protected override bool IsEnabled() => C.DesynthesisResults;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
+        var atk = addonInfo.GetAddon<AtkUnitBase>();
         if (!atk->IsAddonReady()) return;
 
         switch (addonInfo.AddonName)

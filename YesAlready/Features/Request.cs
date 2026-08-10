@@ -7,11 +7,10 @@ using System;
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
+[Bother(nameof(Configuration.RequestFill), BotherCategory.Other, "Automatically fill requested items.")]
 internal unsafe class Request : AddonFeature
 {
-    protected override bool IsEnabled() => C.RequestFill;
-
-    protected override void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
         var npcTrade = &UIState.Instance()->NpcTrade;
         var agent = AgentNpcTrade.Instance();

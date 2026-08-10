@@ -1,9 +1,9 @@
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
+[Bother(nameof(Configuration.FallGuysRegisterConfirm), BotherCategory.Minigames, "Automatically register for Blunderville when speaking with the Blunderville Registrar.")]
 internal class FGSEnterDialog : AddonFeature
 {
-    protected override bool IsEnabled() => C.FallGuysRegisterConfirm;
-
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk) => Callback.Fire(atk, true, 0);
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
+        => Callback.Fire(addonInfo.GetAddon<AtkUnitBase>(), true, 0);
 }

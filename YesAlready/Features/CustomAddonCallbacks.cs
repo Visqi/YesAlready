@@ -28,8 +28,8 @@ public class CustomAddonCallbacks : BaseFeature
 
     public static void Toggle()
     {
-        P.GetFeature<CustomAddonCallbacks>()?.Disable();
-        P.GetFeature<CustomAddonCallbacks>()?.Enable();
+        FeatureRegistry.Get().GetFeature<CustomAddonCallbacks>()?.Disable();
+        FeatureRegistry.Get().GetFeature<CustomAddonCallbacks>()?.Enable();
     }
 
     protected static unsafe void AddonSetup(AddonEvent eventType, AddonArgs addonInfo)
@@ -39,7 +39,7 @@ public class CustomAddonCallbacks : BaseFeature
         if (C.CustomRootFolder.Children.OfType<CustomEntryNode>().FirstOrDefault(x => x.Addon == addonInfo.AddonName && x.Enabled) is { } node)
         {
             var callbacks = CallbackToArray(node.CallbackParams);
-            Callback.Fire((AtkUnitBase*)addonInfo.Addon.Address, node.UpdateState, callbacks);
+            Callback.Fire(addonInfo.GetAddon<AtkUnitBase>(), node.UpdateState, callbacks);
         }
     }
 

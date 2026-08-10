@@ -1,5 +1,4 @@
-﻿using ECommons.EzHookManager;
-using FFXIVClientStructs.FFXIV.Client.Game;
+﻿using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace YesAlready.Features;
 
@@ -8,7 +7,7 @@ public class DifficultySelectYesNo : AddonFeature
 {
     protected override bool IsEnabled() => C.DifficultySelectYesNoEnabled;
 
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk)
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
         Log($"Selecting difficulty: {C.DifficultySelectYesNo}");
         GameMain.ExecuteCommand(823, (int)C.DifficultySelectYesNo);

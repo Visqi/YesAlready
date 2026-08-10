@@ -1,8 +1,9 @@
 ﻿namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
+[Bother(nameof(Configuration.MiragePrismPrismSetConvertC), BotherCategory.Glamour, "Confirm glamour outfit conversion.")]
 public class MiragePrismPrismSetConvertC : AddonFeature
 {
-    protected override bool IsEnabled() => C.MiragePrismPrismSetConvertC;
-    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo, AtkUnitBase* atk) => Callback.Fire(atk, true, 0);
+    protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
+        => Callback.Fire(addonInfo.GetAddon<AtkUnitBase>(), true, 0);
 }
