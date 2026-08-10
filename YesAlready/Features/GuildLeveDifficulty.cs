@@ -6,7 +6,7 @@ internal class GuildLeveDifficulty : AddonFeature
 {
     protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)
     {
-        var atk = addonInfo.GetAddon<AtkUnitBase>();
-        Callback.Fire(atk, true, 0, atk->AtkValues[1].Int);
+        var addon = addonInfo.GetAddon<AddonGuildLeveDifficulty>();
+        Callback.Fire(&addon->AtkUnitBase, true, 0, addon->DifficultySlider->MinValue);
     }
 }
