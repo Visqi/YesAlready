@@ -135,9 +135,8 @@ public static class Bothers
         using var indent = bother.RequiresEnabledProperty is not null ? ImRaii.PushIndent() : null;
         using var id = ImRaii.PushId($"{feature.Key}_{bother.ConfigProperty}");
 
-        var label = bother.Label ?? feature.Key;
         var value = GetConfigBool(bother.ConfigProperty);
-        if (ImGui.Checkbox(label, ref value))
+        if (ImGui.Checkbox(bother.Label is string label ? $"{feature.Key} - {label}" : feature.Key, ref value))
         {
             SetConfigBool(bother.ConfigProperty, value);
 
