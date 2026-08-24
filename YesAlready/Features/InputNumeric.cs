@@ -8,9 +8,10 @@ internal class InputNumeric : TextMatchingFeature
 {
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
-        var text = atk->AtkValues[6].String;
-        Service.Watcher.LastSeenNumericsText = atk->AtkValues[6].String.ToString();
-        return text.ToString();
+        var addon = (AddonInputNumeric*)atk;
+        var text = addon->TypedAtkValues->Prompt.String.ToString();
+        Service.Watcher.LastSeenNumericsText = text;
+        return text;
     }
 
     protected override unsafe object? ShouldProceed(string text, AtkUnitBase* atk)
@@ -35,8 +36,9 @@ internal class InputNumeric : TextMatchingFeature
     {
         if (matchingNode is not NumericsEntryNode node) return;
 
-        var min = atk->AtkValues[2].UInt;
-        var max = atk->AtkValues[3].UInt;
+        var addon = (AddonInputNumeric*)atk;
+        var min = (uint)addon->NumericInput->Data.Min;
+        var max = (uint)addon->NumericInput->Data.Max;
 
         Log("Selecting ok");
         var value = Math.Clamp(node.IsPercent ? (uint)Math.Ceiling(max * (node.Percentage / 100f)) : (uint)node.Quantity, min, max);

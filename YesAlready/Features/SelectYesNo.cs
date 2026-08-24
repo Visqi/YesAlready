@@ -127,10 +127,11 @@ internal class SelectYesno : TextMatchingFeature
 
     private static unsafe string GetTextLegacy(AtkUnitBase* atk)
     {
-        if (atk->AtkValues == null || atk->AtkValuesCount == 0 || !atk->AtkValues[0].String.HasValue)
+        var addon = (AddonSelectYesno*)atk;
+        if (addon->AtkValues == null || addon->AtkValuesCount == 0 || !addon->StandardTypedAtkValues->PromptText.String.HasValue)
             return string.Empty;
 
-        var se = MemoryHelper.ReadSeStringNullTerminated((nint)atk->AtkValues[0].String.Value);
+        var se = MemoryHelper.ReadSeStringNullTerminated((nint)addon->StandardTypedAtkValues->PromptText.String.Value);
         return string.Join(string.Empty, se.Payloads.OfType<TextPayload>().Select(t => t.Text))
             .Replace('\n', ' ')
             .Trim();
