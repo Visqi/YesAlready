@@ -4,7 +4,7 @@ using AddonMateriaAttachDialog = FFXIVClientStructs.FFXIV.Client.UI.AddonMateria
 namespace YesAlready.Features;
 
 [AddonFeature(AddonEvent.PostSetup)]
-[Bother(nameof(Configuration.MaterialAttachDialogEnabled), BotherCategory.Melding, "Remove the materia melding confirmation menu.")]
+[Bother(nameof(Configuration.MaterialAttachDialogEnabled), BotherCategory.Materia, "Remove the materia melding confirmation menu.")]
 internal class MateriaAttachDialog : AddonFeature
 {
     protected override unsafe void HandleAddonEvent(AddonEvent eventType, AddonArgs addonInfo)

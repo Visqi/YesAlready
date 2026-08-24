@@ -5,7 +5,7 @@ namespace YesAlready.BaseFeatures;
 public enum BotherCategory
 {
     Desynthesis,
-    Melding,
+    Materia,
     Retainers,
     Duties,
     PvP,

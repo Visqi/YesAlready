@@ -65,7 +65,9 @@ public partial class Configuration() : IPluginConfiguration
     public bool AutoCollectable { get; set; } = false;
     public bool LotteryWeeklyInput { get; set; } = false;
     public bool TradeMultiple { get; set; } = false;
-    public TradeMultipleMode TransmuteMode { get; set; } = TradeMultipleMode.AllSame;
+    public TradeMultipleMode TransmuteMode { get; set; } = TradeMultipleMode.AllDifferent;
+    public bool TradeMultipleRequireUnique { get; set; } = false;
+    public List<uint> TradeMultipleBlacklistItemIds { get; set; } = [];
     public bool KupoOfFortune { get; set; } = false;
     public bool CustomDeliveries { get; set; } = false;
     public bool MKSRecordQuit { get; set; } = false;

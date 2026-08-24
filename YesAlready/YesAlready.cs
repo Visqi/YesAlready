@@ -43,6 +43,7 @@ public class YesAlready : IDalamudPlugin
         EzConfigGui.Init(new MainWindow().Draw);
         EzConfigGui.WindowSystem.AddWindow(new ZoneListWindow());
         EzConfigGui.WindowSystem.AddWindow(new ConditionsListWindow());
+        EzConfigGui.WindowSystem.AddWindow(new MateriaBlacklistWindow());
 
         EzCmd.Add(Command, OnCommand, "Opens the plugin window.", int.MinValue);
         Aliases.Each(a => EzCmd.Add(a, OnCommand, $"{Command} alias"));

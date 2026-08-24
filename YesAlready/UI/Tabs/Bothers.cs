@@ -1,8 +1,10 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.SimpleGui;
 using System;
 using System.Linq;
 using System.Reflection;
+using YesAlready.Interface;
 
 namespace YesAlready.UI.Tabs;
 
@@ -11,7 +13,7 @@ public static class Bothers
     private static readonly (BotherCategory Category, string Header)[] CategoryHeaders =
     [
         (BotherCategory.Desynthesis, "Desynthesis and Aetherial Reduction"),
-        (BotherCategory.Melding, "Melding"),
+        (BotherCategory.Materia, "Materia"),
         (BotherCategory.Retainers, "Retainers and Submersibles"),
         (BotherCategory.Duties, "Duties"),
         (BotherCategory.PvP, "PvP"),
@@ -86,6 +88,38 @@ public static class Bothers
             }
             ImGuiX.IndentedTextColored("Rate limiter (pause after N items, 0 to disable).");
         }
+
+        if (bother.ConfigProperty == nameof(Configuration.TradeMultiple) && value)
+            DrawTradeMultipleSettings();
+    }
+
+    private static void DrawTradeMultipleSettings()
+    {
+        using var settingsIndent = ImRaii.PushIndent();
+
+        var mode = (int)C.TransmuteMode;
+        var modes = new[] { "All Same", "All Different" };
+        if (ImGui.Combo("Mode##TransmuteMode", ref mode, modes, modes.Length))
+        {
+            C.TransmuteMode = (Configuration.TradeMultipleMode)mode;
+            C.Save();
+        }
+        ImGuiX.IndentedTextColored("Whether to submit all of the same materia at once or try to use all different.");
+
+        if (C.TransmuteMode == Configuration.TradeMultipleMode.AllDifferent)
+        {
+            var requireUnique = C.TradeMultipleRequireUnique;
+            if (ImGui.Checkbox("Require all different", ref requireUnique))
+            {
+                C.TradeMultipleRequireUnique = requireUnique;
+                C.Save();
+            }
+            ImGuiX.IndentedTextColored("If enabled, stop instead of padding with duplicate types when fewer than five unique materia are available.");
+        }
+
+        var count = C.TradeMultipleBlacklistItemIds.Count;
+        if (ImGui.Button($"Blacklist materia ({count})##TransmuteBlacklistOpen"))
+            EzConfigGui.GetWindow<MateriaBlacklistWindow>()?.Toggle();
     }
 
     private static bool GetConfigBool(string propertyName)
