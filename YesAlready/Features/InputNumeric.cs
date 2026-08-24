@@ -9,7 +9,7 @@ internal class InputNumeric : TextMatchingFeature
     protected override unsafe string GetSetLastSeenText(AtkUnitBase* atk)
     {
         var addon = (AddonInputNumeric*)atk;
-        var text = addon->TypedAtkValues->Prompt.String.ToString();
+        var text = addon->TypedAtkValues->PromptText.String.ToString();
         Service.Watcher.LastSeenNumericsText = text;
         return text;
     }
