@@ -254,7 +254,9 @@ internal class TradeMultiple : AddonFeature
             gradeCounts[info.Grade] = gradeCounts.GetValueOrDefault(info.Grade) + slot.Quantity;
         }
 
-        byte? grade = gradeCounts.Count == 0 ? null : gradeCounts.OrderByDescending(kv => kv.Value).ThenByDescending(kv => kv.Key).First().Key;
+        // lowest grade present, keep going bottom up
+        // logic being that you have a chance to get a higher materia so start low and work your way up, otherwise if you did randomly you might end up with weird mixes by the end
+        byte? grade = gradeCounts.Count == 0 ? null : gradeCounts.Keys.Min();
         return (used, grade);
     }
 
@@ -262,9 +264,9 @@ internal class TradeMultiple : AddonFeature
     {
         uint? forcedType = usedTypes.Count == 1 ? usedTypes.First() : null;
 
-        var best = available
+        var groups = available
             .Where(a => forcedType is null || a.Info.MateriaRowId == forcedType)
-            .Where(a => usedGrade is null || a.Info.Grade == usedGrade)
+            .Where(a => usedGrade is null || a.Info.Grade >= usedGrade)
             .GroupBy(a => (a.Info.MateriaRowId, a.Info.Grade))
             .Select(g => new
             {
@@ -272,22 +274,45 @@ internal class TradeMultiple : AddonFeature
                 g.Key.Grade,
                 Stacks = g.OrderByDescending(x => x.Quantity).ToList(),
             })
+            .ToList();
+
+        // prefer a single type+grade that can fill the window, lowest grade first
+        var best = groups
             .Where(g => g.Count >= remaining)
-            .OrderByDescending(g => g.Grade)
+            .OrderBy(g => g.Grade)
             .ThenByDescending(g => g.Count)
             .FirstOrDefault();
 
-        if (best is null)
-            return [];
+        if (best is not null)
+            return TakeFromStacks(best.Stacks, remaining);
 
-        // one add per stack, don't ref the same slot twice
+        // nothing with enough of one materia, mix bottom-up by grade
         var picks = new List<Pick>();
         var need = remaining;
-        foreach (var stack in best.Stacks)
+        foreach (var group in groups.OrderBy(g => g.Grade).ThenByDescending(g => g.Count))
         {
             if (need <= 0)
                 break;
+            foreach (var stack in group.Stacks)
+            {
+                if (need <= 0)
+                    break;
+                var take = Math.Min(need, stack.Quantity);
+                picks.Add(new Pick(stack.Container, stack.Slot, stack.Info, take));
+                need -= take;
+            }
+        }
 
+        return picks;
+    }
+
+    private static List<Pick> TakeFromStacks(List<AvailableMateria> stacks, int need)
+    {
+        var picks = new List<Pick>();
+        foreach (var stack in stacks)
+        {
+            if (need <= 0)
+                break;
             var take = Math.Min(need, stack.Quantity);
             picks.Add(new Pick(stack.Container, stack.Slot, stack.Info, take));
             need -= take;
@@ -321,85 +346,52 @@ internal class TradeMultiple : AddonFeature
 
         int Need() => remaining - picks.Sum(p => p.Quantity);
 
-        // lock the batch to one grade so upgrade odds aren't diluted (e.g. 5xG10 > 4xG10+1xG9)
-        var targetGrade = usedGrade ?? PickBestGrade(available, left, selectedTypes, remaining);
-        if (targetGrade is null)
+        var minGrade = usedGrade ?? available.Min(a => (byte?)a.Info.Grade);
+        if (minGrade is null)
             return [];
 
-        Log($"Target grade {targetGrade.Value} (usedGrade={usedGrade?.ToString() ?? "none"})");
+        var grades = available
+            .Select(a => a.Info.Grade)
+            .Where(g => g >= minGrade)
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
 
-        bool OnGrade(AvailableMateria a) => a.Info.Grade == targetGrade;
-
-        // unique types within the locked grade
-        while (Need() > 0)
+        // only lock to one grade when it has enough unique types; otherwise spread across grades bottom-up
+        byte? soloGrade = null;
+        foreach (var grade in grades)
         {
-            var candidate = available
-                .Where(a => OnGrade(a) && left[(a.Container, a.Slot)] > 0)
-                .Where(a => !selectedTypes.Contains(a.Info.MateriaRowId))
-                .GroupBy(a => a.Info.MateriaRowId)
-                .Select(g =>
-                {
-                    var stack = g.OrderByDescending(x => left[(x.Container, x.Slot)]).First();
-                    return new
-                    {
-                        Stack = stack,
-                        TypeCount = g.Sum(x => left[(x.Container, x.Slot)]),
-                    };
-                })
-                .OrderByDescending(x => x.TypeCount)
-                .FirstOrDefault();
-
-            if (candidate is null)
+            var unique = available
+                .Where(a => a.Info.Grade == grade && left[(a.Container, a.Slot)] > 0)
+                .Select(a => a.Info.MateriaRowId)
+                .Distinct()
+                .Count(id => !selectedTypes.Contains(id));
+            if (unique >= remaining)
+            {
+                soloGrade = grade;
                 break;
-
-            Take(candidate.Stack, 1);
-            selectedTypes.Add(candidate.Stack.Info.MateriaRowId);
+            }
         }
 
-        if (Need() <= 0)
-            return picks;
+        var gradeOrder = soloGrade is { } sg ? [sg] : grades;
+        Log(soloGrade is { } s
+            ? $"Solo grade {s} ({remaining} unique)"
+            : $"Spreading upward from grade {minGrade} ({string.Join(",", grades)})");
 
-        if (C.TradeMultipleRequireUnique)
+        foreach (var grade in gradeOrder)
         {
-            Log($"Not enough unique materia at grade {targetGrade}, stopping");
-            return [];
-        }
-
-        // pad with dupes of the same grade
-        while (Need() > 0)
-        {
-            var key = left
-                .Where(kv => kv.Value > 0 && OnGrade(bySlot[kv.Key]))
-                .OrderByDescending(kv => pickIndex.ContainsKey(kv.Key)) // finish stacks already in the window first
-                .ThenByDescending(kv => kv.Value)
-                .Select(kv => ((InventoryType, short)?)kv.Key)
-                .FirstOrDefault();
-
-            if (key is not { } slotKey)
-                break;
-
-            var stack = bySlot[slotKey];
-            var take = Math.Min(Need(), left[slotKey]);
-            Take(stack, take);
-        }
-
-        // only mix grades when no single grade can fill the window
-        if (Need() > 0 && usedGrade is null)
-        {
-            Log($"Grade {targetGrade} exhausted with {Need()} slot(s) left, falling back to other grades");
             while (Need() > 0)
             {
                 var candidate = available
-                    .Where(a => left[(a.Container, a.Slot)] > 0)
+                    .Where(a => a.Info.Grade == grade && left[(a.Container, a.Slot)] > 0)
                     .Where(a => !selectedTypes.Contains(a.Info.MateriaRowId))
                     .GroupBy(a => a.Info.MateriaRowId)
                     .Select(g =>
                     {
-                        var stack = g.OrderByDescending(x => left[(x.Container, x.Slot)]).ThenByDescending(x => x.Info.Grade).First();
+                        var stack = g.OrderByDescending(x => left[(x.Container, x.Slot)]).First();
                         return new { Stack = stack, TypeCount = g.Sum(x => left[(x.Container, x.Slot)]) };
                     })
-                    .OrderByDescending(x => x.Stack.Info.Grade)
-                    .ThenByDescending(x => x.TypeCount)
+                    .OrderByDescending(x => x.TypeCount)
                     .FirstOrDefault();
 
                 if (candidate is null)
@@ -409,55 +401,38 @@ internal class TradeMultiple : AddonFeature
                 selectedTypes.Add(candidate.Stack.Info.MateriaRowId);
             }
 
-            if (Need() > 0 && !C.TradeMultipleRequireUnique)
-            {
-                while (Need() > 0)
-                {
-                    var key = left
-                        .Where(kv => kv.Value > 0)
-                        .OrderByDescending(kv => bySlot[kv.Key].Info.Grade)
-                        .ThenByDescending(kv => pickIndex.ContainsKey(kv.Key))
-                        .ThenByDescending(kv => kv.Value)
-                        .Select(kv => ((InventoryType, short)?)kv.Key)
-                        .FirstOrDefault();
-
-                    if (key is not { } slotKey)
-                        break;
-
-                    Take(bySlot[slotKey], Math.Min(Need(), left[slotKey]));
-                }
-            }
+            if (Need() <= 0)
+                break;
         }
 
-        if (Need() > 0 && C.TradeMultipleRequireUnique)
+        if (Need() <= 0)
+            return picks;
+
+        if (C.TradeMultipleRequireUnique)
         {
-            Log($"Not enough unique materia, stopping");
+            Log($"Not enough unique materia, stopping ({picks.Sum(p => p.Quantity)}/{remaining})");
             return [];
         }
 
+        // pad with dupes from lowest grade / largest stacks
+        // goal is to keep the spread of grades tight
+        while (Need() > 0)
+        {
+            var key = left
+                .Where(kv => kv.Value > 0 && (soloGrade is null || bySlot[kv.Key].Info.Grade == soloGrade))
+                .OrderBy(kv => bySlot[kv.Key].Info.Grade)
+                .ThenByDescending(kv => pickIndex.ContainsKey(kv.Key))
+                .ThenByDescending(kv => kv.Value)
+                .Select(kv => ((InventoryType, short)?)kv.Key)
+                .FirstOrDefault();
+
+            if (key is not { } slotKey)
+                break;
+
+            Take(bySlot[slotKey], Math.Min(Need(), left[slotKey]));
+        }
+
         return picks;
-    }
-
-    private static byte? PickBestGrade(List<AvailableMateria> available, Dictionary<(InventoryType, short), int> left, HashSet<uint> selectedTypes, int remaining)
-    {
-        var requireUnique = C.TradeMultipleRequireUnique;
-
-        return available
-            .Where(a => left[(a.Container, a.Slot)] > 0)
-            .GroupBy(a => a.Info.Grade)
-            .Select(g =>
-            {
-                var total = g.Sum(x => left[(x.Container, x.Slot)]);
-                var uniqueUnused = g.Select(x => x.Info.MateriaRowId).Distinct().Count(id => !selectedTypes.Contains(id));
-                var fillable = requireUnique ? Math.Min(uniqueUnused, remaining) : Math.Min(total, remaining);
-                return new { Grade = g.Key, Total = total, UniqueUnused = uniqueUnused, Fillable = fillable };
-            })
-            .Where(g => g.Fillable > 0)
-            .OrderByDescending(g => g.Fillable == remaining) // prefer a grade that can fill the whole window
-            .ThenByDescending(g => g.Fillable) // else maximize same-grade pieces
-            .ThenByDescending(g => g.Grade) // higher grade = better upgrade odds
-            .Select(g => (byte?)g.Grade)
-            .FirstOrDefault();
     }
 
     private unsafe List<AvailableMateria> ScanInventory(AgentTradeMultiple* agent)
