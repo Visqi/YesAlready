@@ -88,15 +88,15 @@ internal class TradeMultiple : AddonFeature
     {
         var needed = (int)agent->GetSlotsRemaining();
         var picks = SelectPicks(agent);
-        if (picks.Count == 0)
+        var totalQty = picks.Sum(p => p.Quantity);
+        if (picks.Count == 0 || totalQty < needed)
         {
-            Log($"No suitable materia found (need {needed}, mode={C.TransmuteMode})");
+            Log($"Not enough materia to fill ({totalQty}/{needed}, mode={C.TransmuteMode})");
             _busy = false;
             return;
         }
 
-        var totalQty = picks.Sum(p => p.Quantity);
-        Log($"Filling {totalQty}/{needed} piece(s) via {C.TransmuteMode} ({picks.Count} stack op(s))");
+        Log($"Filling {totalQty}/{needed} piece(s) via {C.TransmuteMode}");
 
         foreach (var pick in picks)
         {
@@ -374,10 +374,6 @@ internal class TradeMultiple : AddonFeature
         }
 
         var gradeOrder = soloGrade is { } sg ? [sg] : grades;
-        Log(soloGrade is { } s
-            ? $"Solo grade {s} ({remaining} unique)"
-            : $"Spreading upward from grade {minGrade} ({string.Join(",", grades)})");
-
         foreach (var grade in gradeOrder)
         {
             while (Need() > 0)
