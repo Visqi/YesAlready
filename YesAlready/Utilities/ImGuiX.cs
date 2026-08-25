@@ -19,7 +19,7 @@ internal static class ImGuiX
         if (wrapped)
             ImGui.TextWrapped(text);
         else
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
     }
 
     public static bool IconButton(FontAwesomeIcon icon) => IconButton(icon);
@@ -63,7 +63,7 @@ internal static class ImGuiX
         if (ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
             ImGui.EndTooltip();
         }
     }

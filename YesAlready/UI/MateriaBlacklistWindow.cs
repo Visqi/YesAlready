@@ -27,8 +27,8 @@ internal class MateriaBlacklistWindow : Window
         var grades = catalog.CurrentGrades;
         var selected = C.TradeMultipleBlacklistItemIds;
 
-        ImGui.TextUnformatted($"Blacklisted: {selected.Count}  ·  Showing current materia ({catalog.CurrentGradeCount} grades)");
-        ImGuiX.IndentedTextColored("Outdated/not shown materia are automatically blacklisted");
+        ImGui.Text($"Blacklisted: {selected.Count}");
+        ImGui.TextDisabled("Outdated/not shown materia are automatically blacklisted");
         ImGui.Separator();
 
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
@@ -38,7 +38,7 @@ internal class MateriaBlacklistWindow : Window
         var visible = types.Where(t => search.Length == 0 || t.Name.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
 
         ImGui.Spacing();
-        ImGui.TextUnformatted("Category");
+        ImGui.Text("Category");
         if (ImGui.Button("Battle"))
             SetMany(visible.Where(t => t.Category == MateriaCategory.Battle).SelectMany(t => t.Grades.Select(g => g.ItemId)), true);
         ImGui.SameLine();
@@ -56,7 +56,7 @@ internal class MateriaBlacklistWindow : Window
         }
 
         ImGui.Spacing();
-        ImGui.TextUnformatted("Grade");
+        ImGui.Text("Grade");
         foreach (var grade in grades)
         {
             using var gradeId = ImRaii.PushId(grade);
@@ -95,7 +95,7 @@ internal class MateriaBlacklistWindow : Window
                 if (ImGui.Button(typeAllOn ? "None" : "All", new Vector2(48, 0)))
                     SetMany(typeIds, !typeAllOn);
                 ImGui.SameLine();
-                ImGui.TextUnformatted(type.Name);
+                ImGui.Text(type.Name);
 
                 using var gradeIndent = ImRaii.PushIndent();
                 var dirty = false;

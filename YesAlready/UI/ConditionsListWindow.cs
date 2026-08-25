@@ -21,24 +21,24 @@ internal class ConditionsListWindow : Window
     {
         using var _ = ImRaii.PushColor(ImGuiCol.ResizeGrip, 0);
 
-        ImGui.TextUnformatted($"Current Conditions: {string.Join(", ", Svc.Condition.AsReadOnlySet().Where(x => Svc.Condition[x]).Select(flag => flag.ToString()).ToList())}");
+        ImGui.Text($"Current Conditions: {string.Join(", ", Svc.Condition.AsReadOnlySet().Where(x => Svc.Condition[x]).Select(flag => flag.ToString()).ToList())}");
 
         ImGui.Columns(2);
 
-        ImGui.TextUnformatted("ID");
+        ImGui.Text("ID");
         ImGui.NextColumn();
 
-        ImGui.TextUnformatted("Name");
+        ImGui.Text("Name");
         ImGui.NextColumn();
 
         ImGui.Separator();
 
         foreach (var flag in Enum.GetValues<ConditionFlag>())
         {
-            ImGui.TextUnformatted($"{flag}");
+            ImGui.Text($"{flag}");
             ImGui.NextColumn();
 
-            ImGui.TextUnformatted($"{(int)Enum.Parse<ConditionFlag>(flag.ToString())}");
+            ImGui.Text($"{(int)Enum.Parse<ConditionFlag>(flag.ToString())}");
             ImGui.NextColumn();
         }
 

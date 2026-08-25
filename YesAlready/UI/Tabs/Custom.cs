@@ -72,7 +72,7 @@ public static class Custom
             }
         }
 
-        ImGui.TextUnformatted("Note:");
+        ImGui.Text("Note:");
         var noteText = node.Text;
         if (ImGui.InputText($"##{node.Name}-{nameof(noteText)}", ref noteText, 10_000, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
         {
@@ -82,7 +82,7 @@ public static class Custom
         ImGui.SameLine();
         ImGuiComponents.HelpMarker("This is not used for anything, it's just a note to help remember what this bother does.");
 
-        ImGui.TextUnformatted("Addon Name:");
+        ImGui.Text("Addon Name:");
         var addonName = node.Addon;
         if (ImGui.InputText($"##{node.Name}-{nameof(addonName)}", ref addonName, 100, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
         {
@@ -91,7 +91,7 @@ public static class Custom
             CustomAddonCallbacks.Toggle();
         }
 
-        ImGui.TextUnformatted("Parameters:");
+        ImGui.Text("Parameters:");
         var callbackParams = node.CallbackParams;
         if (ImGui.InputText($"##{node.Name}-{nameof(callbackParams)}", ref callbackParams, 150, ImGuiInputTextFlags.AutoSelectAll | ImGuiInputTextFlags.EnterReturnsTrue))
         {
