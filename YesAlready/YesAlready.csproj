@@ -4,7 +4,7 @@
 		<Authors>daemitus, croizat</Authors>
 		<Version>0.0.0.0</Version>
 		<LangVersion>preview</LangVersion>
-		<LocalCS>true</LocalCS>
+		<LocalCS>false</LocalCS>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(LocalCS)'=='true'">
